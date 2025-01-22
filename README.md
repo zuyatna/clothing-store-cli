@@ -25,3 +25,5 @@ Report:
 - Total purchase (suy)
 - Total revenue (arif)
 - Total user (suy)
+
+Branch sesuai nama, jangan lupa pakai pull request
