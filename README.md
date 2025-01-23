@@ -6,11 +6,12 @@
 - config
 - entity
 - repository
-- handler
+- helper
+- service
 
 Disclaimer! config folder yg berisi database ga terupload.
 
-Features CRUD:
+## Features CRUD:
 - Products (arif)
 - PaymentMethods (suy)
 - Sizes (arif)
