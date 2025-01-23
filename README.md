@@ -26,4 +26,8 @@ Report:
 - Total revenue (arif)
 - Total user (suy)
 
-Branch sesuai nama, jangan lupa pakai pull request
+Branch sesuai nama, jangan lupa pakai pull request.
+
+Install package:
+go get github.com/jmoiron/sqlx
+go get github.com/lib/pq
