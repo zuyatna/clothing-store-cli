@@ -30,4 +30,5 @@ Branch sesuai nama, jangan lupa pakai pull request.
 
 Install package:
 go get github.com/jmoiron/sqlx
+
 go get github.com/lib/pq
