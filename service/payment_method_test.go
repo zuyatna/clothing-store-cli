@@ -12,7 +12,7 @@ import (
 var paymentMethodRepository = &repository.PaymentMethodRepositoryMock{Mock: mock.Mock{}}
 var paymentMethodService = NewPaymentMethodService(paymentMethodRepository)
 
-func TestGetAll(t *testing.T) {
+func TestFindAll(t *testing.T) {
 	paymentMethods := []entity.PaymentMethod{
 		{
 			PaymentMethodID: 1,
@@ -24,24 +24,37 @@ func TestGetAll(t *testing.T) {
 		},
 	}
 
-	paymentMethodRepository.On("GetAll").Return(paymentMethods, nil)
+	paymentMethodRepository.On("FindAll").Return(paymentMethods, nil)
 
-	result, err := paymentMethodService.GetAll()
-	assert.Nil(t, err)
+	result, err := paymentMethodRepository.FindAll()
+	assert.NoError(t, err)
 	assert.Equal(t, paymentMethods, result)
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestGetByID(t *testing.T) {
+func TestFindByID(t *testing.T) {
 	paymentMethod := entity.PaymentMethod{
 		PaymentMethodID: 1,
 		Name:            "Credit Card",
 	}
 
-	paymentMethodRepository.On("GetByID", 1).Return(paymentMethod, nil)
+	paymentMethodRepository.On("FindByID", 1).Return(paymentMethod, nil)
 
-	result, err := paymentMethodService.GetByID(1)
-	assert.Nil(t, err)
+	result, err := paymentMethodRepository.FindByID(1)
+	assert.NoError(t, err)
 	assert.Equal(t, paymentMethod, result)
+	paymentMethodRepository.AssertExpectations(t)
+}
+
+func TestAdd(t *testing.T) {
+	paymentMethod := entity.PaymentMethod{
+		PaymentMethodID: 1,
+		Name:            "Credit Card",
+	}
+
+	paymentMethodRepository.On("Add", paymentMethod).Return(nil)
+
+	err := paymentMethodService.Add(paymentMethod)
+	assert.NoError(t, err)
 	paymentMethodRepository.AssertExpectations(t)
 }

@@ -3,10 +3,7 @@ package repository
 import "clothing-pair-project/entity"
 
 type PaymentMethodRepository interface {
-	GetAll() ([]entity.PaymentMethod, error)
-	GetByID(paymentMethodID int) (entity.PaymentMethod, error)
-}
-
-type paymentMethodRepository struct {
-	paymentMethods []entity.PaymentMethod
+	FindAll() ([]entity.PaymentMethod, error)
+	FindByID(paymentMethodID int) (entity.PaymentMethod, error)
+	Add(paymentMethod entity.PaymentMethod) error
 }

@@ -14,7 +14,7 @@ func NewPaymentMethodService(paymentMethodRepository repository.PaymentMethodRep
 }
 
 func (service *PaymentMethodService) GetAll() ([]entity.PaymentMethod, error) {
-	paymentMethods, err := service.paymentMethodRepository.GetAll()
+	paymentMethods, err := service.paymentMethodRepository.FindAll()
 	if err != nil {
 		return paymentMethods, err
 	}
@@ -22,9 +22,17 @@ func (service *PaymentMethodService) GetAll() ([]entity.PaymentMethod, error) {
 }
 
 func (service *PaymentMethodService) GetByID(paymentMethodID int) (entity.PaymentMethod, error) {
-	paymentMethod, err := service.paymentMethodRepository.GetByID(paymentMethodID)
+	paymentMethod, err := service.paymentMethodRepository.FindByID(paymentMethodID)
 	if err != nil {
 		return paymentMethod, err
 	}
 	return paymentMethod, nil
+}
+
+func (service *PaymentMethodService) Add(paymentMethod entity.PaymentMethod) error {
+	err := service.paymentMethodRepository.Add(paymentMethod)
+	if err != nil {
+		return err
+	}
+	return nil
 }
