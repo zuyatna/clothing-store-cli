@@ -1,7 +1,7 @@
-ERD
+## ERD
 ![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd/clothes.drawio.png?raw=true)
 
-Project Structures
+## Project Structures
 - cli
 - config
 - entity
@@ -9,8 +9,8 @@ Project Structures
 - handler
 
 Disclaimer! config folder yg berisi database ga terupload.
-Features:
-CRUD:
+
+Features CRUD:
 - Products (arif)
 - PaymentMethods (suy)
 - Sizes (arif)
@@ -20,7 +20,7 @@ CRUD:
 - Users (arif)
 - Purchases (suy)
 
-Report:
+## Report:
 - Total product ready (arif)
 - Total purchase (suy)
 - Total revenue (arif)
@@ -28,7 +28,7 @@ Report:
 
 Branch sesuai nama, jangan lupa pakai pull request.
 
-Install package:
+## Install package:
 
 go get github.com/jmoiron/sqlx
 
