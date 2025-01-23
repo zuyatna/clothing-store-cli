@@ -16,7 +16,7 @@ func NewCollectionHandler(db *sqlx.DB) *CollectionHandler {
 
 func (h *CollectionHandler) FindAll() ([]entity.Collection, error) {
 	var collections []entity.Collection
-	query := `SELECT collection_id, name FROM collections`
+	query := `SELECT * FROM collections`
 	err := h.db.Select(&collections, query)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (h *CollectionHandler) FindAll() ([]entity.Collection, error) {
 
 func (h *CollectionHandler) FindByID(collectionID int) (entity.Collection, error) {
 	var collection entity.Collection
-	query := `SELECT collection_id, name FROM collections WHERE collection_id = $1`
+	query := `SELECT * FROM collections WHERE collection_id = $1`
 	err := h.db.Get(&collection, query, collectionID)
 	if err != nil {
 		return entity.Collection{}, err

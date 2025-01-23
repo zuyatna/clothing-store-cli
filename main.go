@@ -1,9 +1,14 @@
 package main
 
 import (
+	"clothing-pair-project/cli/menus"
 	"clothing-pair-project/config"
+	"clothing-pair-project/handler"
+	"clothing-pair-project/service"
 	"fmt"
 	"log"
+
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
@@ -21,7 +26,8 @@ func main() {
 
 		switch input {
 		case 1:
-			// TODO: login
+			loginMenu(db)
+			return
 		case 2:
 			// TODO: register
 		case 0:
@@ -30,16 +36,6 @@ func main() {
 			fmt.Println("Invalid input")
 		}
 	}
-
-	// // setup payment method service
-	// PaymentMethodHandler := handler.NewPaymentMethodHandler(db)
-	// paymentMethodService := service.NewPaymentMethodService(PaymentMethodHandler)
-
-	// cli.AddPaymentMethod(*paymentMethodService, "Credit Card")
-	// cli.FindAllPaymentMethods(*paymentMethodService)
-	// cli.FindPaymentMethodByID(*paymentMethodService, 1)
-	// cli.UpdatePaymentMethod(*paymentMethodService, 1, "Bank Transfer")
-	// cli.DeletePaymentMethod(*paymentMethodService, 1)
 }
 
 func dashboardMenu() {
@@ -49,4 +45,38 @@ func dashboardMenu() {
 	fmt.Println("2. Register")
 	fmt.Println("0. Exit")
 	fmt.Println("=====================================")
+}
+
+func loginMenu(db *sqlx.DB) {
+	fmt.Println()
+	fmt.Println("=====================================")
+
+	var username, password string
+	fmt.Printf("username: ")
+	fmt.Scanln(&username)
+	fmt.Printf("password: ")
+	fmt.Scanln(&password)
+
+	userHandler := handler.NewUserHandler(db)
+	userService := service.NewUserService(userHandler)
+
+	user, err := userService.FindByUsername(username)
+	if err != nil {
+		log.Fatal("Failed to find user by username:", err.Error())
+	}
+	if user.Password != password {
+		log.Fatal("Invalid password")
+	}
+	log.Println("Successfully login")
+
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Printf("Hi, %s", user.Username)
+	fmt.Println("=====================================")
+
+	if user.Role == "admin" {
+		menus.AdminMenu(db)
+	} else {
+		// TODO: userMenu(db, user)
+	}
 }
