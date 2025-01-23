@@ -39,3 +39,21 @@ func (h *PaymentMethodHandler) Add(paymentMethod entity.PaymentMethod) error {
 	_, err := h.db.Exec(query, paymentMethod.Name)
 	return err
 }
+
+func (h *PaymentMethodHandler) Delete(paymentMethodID int) error {
+	query := `DELETE FROM payment_methods WHERE payment_method_id = $1`
+	_, err := h.db.Exec(query, paymentMethodID)
+	return err
+}
+
+func (h *PaymentMethodHandler) Update(paymentMethod entity.PaymentMethod) error {
+	query := `UPDATE payment_methods SET name = $1 WHERE payment_method_id = $2`
+	_, err := h.db.Exec(query, paymentMethod.Name, paymentMethod.PaymentMethodID)
+	return err
+}
+
+func (h *PaymentMethodHandler) ResetIncrement() error {
+	query := `ALTER SEQUENCE "PaymentMethod_PaymentMethodID_seq" RESTART WITH 1`
+	_, err := h.db.Exec(query)
+	return err
+}

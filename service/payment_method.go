@@ -36,3 +36,27 @@ func (service *PaymentMethodService) Add(paymentMethod entity.PaymentMethod) err
 	}
 	return nil
 }
+
+func (service *PaymentMethodService) Update(paymentMethod entity.PaymentMethod) error {
+	err := service.paymentMethodRepository.Update(paymentMethod)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *PaymentMethodService) Delete(paymentMethodID int) error {
+	err := service.paymentMethodRepository.Delete(paymentMethodID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *PaymentMethodService) ResetIncrement() error {
+	err := service.paymentMethodRepository.ResetIncrement()
+	if err != nil {
+		return err
+	}
+	return nil
+}

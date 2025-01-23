@@ -58,3 +58,32 @@ func TestAdd(t *testing.T) {
 	assert.NoError(t, err)
 	paymentMethodRepository.AssertExpectations(t)
 }
+
+func TestUpdate(t *testing.T) {
+	paymentMethod := entity.PaymentMethod{
+		PaymentMethodID: 1,
+		Name:            "Credit Card",
+	}
+
+	paymentMethodRepository.On("Update", paymentMethod).Return(nil)
+
+	err := paymentMethodService.Update(paymentMethod)
+	assert.NoError(t, err)
+	paymentMethodRepository.AssertExpectations(t)
+}
+
+func TestDelete(t *testing.T) {
+	paymentMethodRepository.On("Delete", 1).Return(nil)
+
+	err := paymentMethodService.Delete(1)
+	assert.NoError(t, err)
+	paymentMethodRepository.AssertExpectations(t)
+}
+
+func TestResetIncrement(t *testing.T) {
+	paymentMethodRepository.On("ResetIncrement").Return(nil)
+
+	err := paymentMethodService.ResetIncrement()
+	assert.NoError(t, err)
+	paymentMethodRepository.AssertExpectations(t)
+}
