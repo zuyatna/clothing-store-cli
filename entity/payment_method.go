@@ -1,6 +1,6 @@
 package entity
 
 type PaymentMethod struct {
-	PaymentMethodID int
-	Name            string
+	PaymentMethodID int    `db:"payment_method_id"`
+	Name            string `db:"name"`
 }
