@@ -12,7 +12,7 @@ import (
 var paymentMethodRepository = &repository.PaymentMethodRepositoryMock{Mock: mock.Mock{}}
 var paymentMethodService = NewPaymentMethodService(paymentMethodRepository)
 
-func TestFindAll(t *testing.T) {
+func TestFindAllPaymentMethods(t *testing.T) {
 	paymentMethods := []entity.PaymentMethod{
 		{
 			PaymentMethodID: 1,
@@ -32,7 +32,7 @@ func TestFindAll(t *testing.T) {
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestFindByID(t *testing.T) {
+func TestFindPaymentMethodByID(t *testing.T) {
 	paymentMethod := entity.PaymentMethod{
 		PaymentMethodID: 1,
 		Name:            "Credit Card",
@@ -46,7 +46,7 @@ func TestFindByID(t *testing.T) {
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestAdd(t *testing.T) {
+func TestAddPaymentMethod(t *testing.T) {
 	paymentMethod := entity.PaymentMethod{
 		PaymentMethodID: 1,
 		Name:            "Credit Card",
@@ -59,7 +59,7 @@ func TestAdd(t *testing.T) {
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdatePaymentMethod(t *testing.T) {
 	paymentMethod := entity.PaymentMethod{
 		PaymentMethodID: 1,
 		Name:            "Credit Card",
@@ -72,7 +72,7 @@ func TestUpdate(t *testing.T) {
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestDelete(t *testing.T) {
+func TestDeletePaymentMethod(t *testing.T) {
 	paymentMethodRepository.On("Delete", 1).Return(nil)
 
 	err := paymentMethodService.Delete(1)
@@ -80,7 +80,7 @@ func TestDelete(t *testing.T) {
 	paymentMethodRepository.AssertExpectations(t)
 }
 
-func TestResetIncrement(t *testing.T) {
+func TestResetIncrementPaymentMethod(t *testing.T) {
 	paymentMethodRepository.On("ResetIncrement").Return(nil)
 
 	err := paymentMethodService.ResetIncrement()
