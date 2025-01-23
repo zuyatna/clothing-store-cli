@@ -13,14 +13,16 @@
 Disclaimer! config folder yg berisi database ga terupload.
 
 ## Features CRUD:
-- Products (arif)
-- PaymentMethods (suy)
-- Sizes (arif)
-- Colors (suy)
-- Categories (arif)
-- Collections (suy)
-- Users (arif)
-- Purchases (suy)
+- products (arif)
+- payment_method (suy)
+- sizes (arif)
+- colors (suy)
+- categories (arif)
+- collections (suy)
+- users (arif)
+- purchases (suy)
+
+Note: Penamaan table dan column sama dengan erd.png
 
 ## Report:
 - Total product ready (arif)
