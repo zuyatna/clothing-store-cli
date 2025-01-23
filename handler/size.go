@@ -3,6 +3,9 @@ package handler
 import (
 	"clothing-pair-project/entity"
 	"fmt"
+	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -54,4 +57,23 @@ func (h *SizesMethodHandler) Find(sizeID *int) ([]entity.Sizes, error) {
 		return nil, err
 	}
 	return sizes, nil
+}
+
+func ShowData(namatable string, sizes []entity.Sizes) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+
+	fmt.Println(strings.Repeat("=", 40))
+	fmt.Println(strings.Repeat(" ", 15) + namatable + strings.Repeat(" ", 15))
+	fmt.Println(strings.Repeat("=", 40))
+	_, _ = w.Write([]byte("ID\tName\n"))
+	_, _ = w.Write([]byte("--\t----\n"))
+
+	for _, size := range sizes {
+		_, _ = w.Write([]byte(
+			fmt.Sprintf("%d\t%s\n", size.Size_id, size.Name),
+		))
+	}
+
+	_ = w.Flush()
+	fmt.Println(strings.Repeat("=", 40))
 }

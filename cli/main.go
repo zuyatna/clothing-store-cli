@@ -4,14 +4,9 @@ package main
 
 import (
 	"clothing-pair-project/config"
-	"clothing-pair-project/entity"
 	"clothing-pair-project/handler"
 	"clothing-pair-project/service"
-	"fmt"
 	"log"
-	"os"
-	"strings"
-	"text/tabwriter"
 )
 
 func main() {
@@ -23,65 +18,43 @@ func main() {
 
 	defer db.Close()
 
-	sizesMethodHandler := handler.NewSizesHandler(db)
-	sizesMethodService := service.NewSizeMethodService(sizesMethodHandler)
+	catMethodHandler := handler.NewCategoryHandler(db)
+	catMethodService := service.NewCategoryMethodService(catMethodHandler)
 
-	// addSize := entity.Sizes{
-	// 	Name: "L",
+	// addCategory := entity.Categories{
+	// 	Collection_id: 1,
+	// 	Name:          "Pants",
 	// }
-	// err = sizesMethodService.Add(addSize)
+	// err = catMethodService.Add(addCategory)
 	// if err != nil {
-	// 	log.Fatal("Failed to add size:", err.Error())
+	// 	log.Fatal("Failed to add:", err.Error())
 	// }
-	// log.Println("Successfully added Size:", addSize)
+	// log.Println("Successfully added:", addCategory)
 
-	// updateSize := entity.Sizes{
-	// 	Size_id: 1,
-	// 	Name:    "XXL",
+	// updateCategory := entity.Categories{
+	// 	Category_id:   3,
+	// 	Collection_id: 1,
+	// 	Name:          "Pant",
 	// }
-	// err = sizesMethodService.Update(updateSize)
+	// err = catMethodService.Update(updateCategory)
 	// if err != nil {
-	// 	log.Fatal("Failed to update size:", err.Error())
+	// 	log.Fatal("Failed to update:", err.Error())
 	// }
-	// log.Println("Successfully updated Size:", updateSize)
+	// log.Println("Successfully updated:", updateCategory)
 
-	// idDelete := 1
-	// err = sizesMethodService.Delete(idDelete)
+	// idDelete := 3
+	// err = catMethodService.Delete(idDelete)
 	// if err != nil {
-	// 	log.Fatal("Failed to delete Size:", err.Error())
+	// 	log.Fatal("Failed to delete :", err.Error())
 	// }
-	// log.Println("Successfully deleted Size ID", idDelete)
+	// log.Println("Successfully deleted ", idDelete)
 
-	// sizeFindAll, err := sizesMethodService.FindAll()
-	// if err != nil {
-	// 	log.Fatal("Failed to find all size:", err.Error())
-	// }
-
-	sizeId := 1
-	sizeFindOne, err := sizesMethodService.Find(&sizeId)
+	sizeId := 3
+	sizeFind, err := catMethodService.Find(&sizeId)
 	if err != nil {
 		log.Fatal("Failed to find data : ", err.Error())
 	}
 
-	ShowData("Size", sizeFindOne)
+	handler.ShowDataCategory("Category", sizeFind)
 
-}
-
-func ShowData(namatable string, sizes []entity.Sizes) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-
-	fmt.Println(strings.Repeat("=", 40))
-	fmt.Println(strings.Repeat(" ", 15) + namatable + strings.Repeat(" ", 15))
-	fmt.Println(strings.Repeat("=", 40))
-	_, _ = w.Write([]byte("ID\tName\n"))
-	_, _ = w.Write([]byte("--\t----\n"))
-
-	for _, size := range sizes {
-		_, _ = w.Write([]byte(
-			fmt.Sprintf("%d\t%s\n", size.Size_id, size.Name),
-		))
-	}
-
-	_ = w.Flush()
-	fmt.Println(strings.Repeat("=", 40))
 }
