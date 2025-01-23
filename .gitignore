@@ -21,6 +21,7 @@ config/
 # Go workspace file
 go.work
 go.work.sum
+go.mod
 
 # env file
 .env
