@@ -7,6 +7,7 @@
 - entity
 - repository
 - helper
+- handler
 - service
 
 Disclaimer! config folder yg berisi database ga terupload.
