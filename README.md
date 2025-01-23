@@ -11,14 +11,14 @@ Project Structures
 Disclaimer! config folder yg berisi database ga terupload.
 Features:
 CRUD:
-- product (arif)
-- payment method (suy)
-- size (arif)
-- color (suy)
-- category (arif)
-- collection (suy)
-- user (arif)
-- purchase (suy)
+- Products (arif)
+- PaymentMethods (suy)
+- Sizes (arif)
+- Colors (suy)
+- Categories (arif)
+- Collections (suy)
+- Users (arif)
+- Purchases (suy)
 
 Report:
 - Total product ready (arif)
