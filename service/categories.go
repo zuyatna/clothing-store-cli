@@ -6,7 +6,7 @@ import (
 )
 
 type CategoryMethodService struct {
-	sizeRepository repository.CategoryRepository
+	categoryRepository repository.CategoryRepository
 }
 
 func NewCategoryMethodService(categoryMethodRepository repository.CategoryRepository) *CategoryMethodService {
@@ -14,7 +14,7 @@ func NewCategoryMethodService(categoryMethodRepository repository.CategoryReposi
 }
 
 func (service *CategoryMethodService) Add(categoryMethod entity.Categories) error {
-	err := service.sizeRepository.Add(categoryMethod)
+	err := service.categoryRepository.Add(categoryMethod)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (service *CategoryMethodService) Add(categoryMethod entity.Categories) erro
 }
 
 func (service *CategoryMethodService) Update(categoryMethod entity.Categories) error {
-	err := service.sizeRepository.Update(categoryMethod)
+	err := service.categoryRepository.Update(categoryMethod)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (service *CategoryMethodService) Update(categoryMethod entity.Categories) e
 }
 
 func (service *CategoryMethodService) Delete(categoryMethodID int) error {
-	err := service.sizeRepository.Delete(categoryMethodID)
+	err := service.categoryRepository.Delete(categoryMethodID)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (service *CategoryMethodService) Delete(categoryMethodID int) error {
 }
 
 func (service *CategoryMethodService) Find(categoryMethodID *int) ([]entity.Categories, error) {
-	size, err := service.sizeRepository.Find(categoryMethodID)
+	size, err := service.categoryRepository.Find(categoryMethodID)
 	if err != nil {
 		return size, err
 	}

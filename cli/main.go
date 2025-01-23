@@ -18,43 +18,53 @@ func main() {
 
 	defer db.Close()
 
-	catMethodHandler := handler.NewCategoryHandler(db)
-	catMethodService := service.NewCategoryMethodService(catMethodHandler)
+	productMethodHandler := handler.NewProductsHandler(db)
+	ProductMethodService := service.NewProductMethodService(productMethodHandler)
 
-	// addCategory := entity.Categories{
-	// 	Collection_id: 1,
-	// 	Name:          "Pants",
+	// addProduct := entity.Products{
+	// 	Category_Id: 1,
+	// 	Color_Id:    1,
+	// 	Size_Id:     2,
+	// 	Price:       20000,
+	// 	Stock:       20,
+	// 	Description: "Baju",
+	// 	Image:       "/asset/product/asd.jpg",
 	// }
-	// err = catMethodService.Add(addCategory)
+	// err = ProductMethodService.Add(addProduct)
 	// if err != nil {
 	// 	log.Fatal("Failed to add:", err.Error())
 	// }
-	// log.Println("Successfully added:", addCategory)
+	// log.Println("Successfully added:", addProduct)
 
-	// updateCategory := entity.Categories{
-	// 	Category_id:   3,
-	// 	Collection_id: 1,
-	// 	Name:          "Pant",
+	// updateProduct := entity.Products{
+	// 	Product_Id:  3,
+	// 	Category_Id: 1,
+	// 	Color_Id:    1,
+	// 	Size_Id:     2,
+	// 	Price:       20000,
+	// 	Stock:       10,
+	// 	Description: "ju",
+	// 	Image:       "/asset/product/asd.jpg",
 	// }
-	// err = catMethodService.Update(updateCategory)
+	// err = ProductMethodService.Update(updateProduct)
 	// if err != nil {
 	// 	log.Fatal("Failed to update:", err.Error())
 	// }
-	// log.Println("Successfully updated:", updateCategory)
+	// log.Println("Successfully updated:", updateProduct)
 
 	// idDelete := 3
-	// err = catMethodService.Delete(idDelete)
+	// err = ProductMethodService.Delete(idDelete)
 	// if err != nil {
 	// 	log.Fatal("Failed to delete :", err.Error())
 	// }
 	// log.Println("Successfully deleted ", idDelete)
 
-	sizeId := 3
-	sizeFind, err := catMethodService.Find(&sizeId)
+	// sizeId := 3
+	sizeFind, err := ProductMethodService.Find(nil)
 	if err != nil {
 		log.Fatal("Failed to find data : ", err.Error())
 	}
 
-	handler.ShowDataCategory("Category", sizeFind)
+	handler.ShowDataProduct("Product", sizeFind)
 
 }

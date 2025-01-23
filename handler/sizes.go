@@ -59,7 +59,7 @@ func (h *SizesMethodHandler) Find(sizeID *int) ([]entity.Sizes, error) {
 	return sizes, nil
 }
 
-func ShowData(namatable string, sizes []entity.Sizes) {
+func ShowDataSize(namatable string, sizes []entity.Sizes) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
 
 	fmt.Println(strings.Repeat("=", 40))
