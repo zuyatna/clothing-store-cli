@@ -16,7 +16,7 @@ func NewColorHandler(db *sqlx.DB) *ColorHandler {
 
 func (h *ColorHandler) FindAll() ([]entity.Color, error) {
 	var colors []entity.Color
-	query := `SELECT color_id, name FROM colors`
+	query := `SELECT * FROM colors`
 	err := h.db.Select(&colors, query)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (h *ColorHandler) FindAll() ([]entity.Color, error) {
 
 func (h *ColorHandler) FindByID(colorID int) (entity.Color, error) {
 	var color entity.Color
-	query := `SELECT color_id, name FROM colors WHERE color_id = $1`
+	query := `SELECT * FROM colors WHERE color_id = $1`
 	err := h.db.Get(&color, query, colorID)
 	if err != nil {
 		return entity.Color{}, err

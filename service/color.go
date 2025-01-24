@@ -6,10 +6,10 @@ import (
 )
 
 type ColorService struct {
-	colorRepository repository.ColorsRepository
+	colorRepository repository.ColorRepository
 }
 
-func NewColorService(colorRepository repository.ColorsRepository) *ColorService {
+func NewColorService(colorRepository repository.ColorRepository) *ColorService {
 	return &ColorService{colorRepository}
 }
 

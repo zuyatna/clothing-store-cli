@@ -2,7 +2,7 @@ package repository
 
 import "clothing-pair-project/entity"
 
-type ColorsRepository interface {
+type ColorRepository interface {
 	FindAll() ([]entity.Color, error)
 	FindByID(colorID int) (entity.Color, error)
 	Add(color entity.Color) error
