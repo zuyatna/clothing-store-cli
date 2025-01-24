@@ -56,7 +56,7 @@ I start to reafactor this project to advanced learning.
 
 ## Requirement Packages:
 
-- `go get github.com/joho/godotenv`
+- `go get github.com/spf13/viper`
 - `go get github.com/jmoiron/sqlx`
 - `go get github.com/lib/pq`
 - `go get github.com/olekukonko/tablewriter`
