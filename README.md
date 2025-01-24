@@ -5,7 +5,7 @@ I start to reafactor this project to advanced learning.
 ![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd/clothes.drawio.png?raw=true)
 
 ## Project Structures
-.
+```
 └── project/
     ├── cmd/
     │   └── cli/
@@ -37,6 +37,7 @@ I start to reafactor this project to advanced learning.
     ├── go.mod
     ├── go.sum
     └── README.md
+```
 
 ## Folder Explanation
 - `/cmd` Main applications for this project.
