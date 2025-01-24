@@ -14,13 +14,13 @@ func main() {
 	}
 	defer db.Close()
 
-	productMethodHandler := handler.NewProductsHandler(db)
-	productMethodService := service.NewProductMethodService(productMethodHandler)
+	reportMethodHandler := handler.NewReportHandler(db)
+	reportMethodService := service.NewReportService(reportMethodHandler)
 
-	sizeId := 1
-	sizeFindOne, err := productMethodService.Find(&sizeId)
+	// sizeId := 1
+	needRestock, err := reportMethodService.ReportRevenue(2025, 1)
 	if err != nil {
 		log.Fatal("Failed to find data : ", err.Error())
 	}
-	handler.ShowDataProduct("Products", sizeFindOne)
+	handler.ShowDataNeedRevenue("Revenue", needRestock)
 }
