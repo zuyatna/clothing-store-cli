@@ -64,8 +64,7 @@ func loginMenu(db *sqlx.DB) {
 	user, err := userService.FindByUsername(username)
 	if err != nil {
 		fmt.Println("Invalid username")
-	}
-	if user.Password != password {
+	} else if user.Password != password {
 		fmt.Println("Invalid password")
 	} else {
 		log.Println("Successfully login")

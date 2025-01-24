@@ -1,12 +1,14 @@
 package menu
 
 import (
+	"bufio"
 	"clothing-pair-project/entity"
 	"clothing-pair-project/handler"
 	"clothing-pair-project/service"
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/olekukonko/tablewriter"
@@ -39,7 +41,7 @@ func ManageCollectionMenu(db *sqlx.DB) {
 		case 3:
 			updateCollectionMenu(collectionService)
 		case 4:
-			allCollection(collectionService)
+			deleteCollectionMenu(collectionService)
 		case 0:
 			return
 		default:
@@ -56,7 +58,9 @@ func addCollectionMenu(collectionService *service.CollectionService) {
 
 	var name string
 	fmt.Print("Name: ")
-	fmt.Scanln(&name)
+	reader := bufio.NewReader(os.Stdin)
+	name, _ = reader.ReadString('\n')
+	name = strings.TrimSpace(name)
 
 	collection := entity.Collection{
 		Name: name,
@@ -67,7 +71,7 @@ func addCollectionMenu(collectionService *service.CollectionService) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("User added successfully!")
+	fmt.Println("Collection added successfully!")
 }
 
 func findAllCollectionsMenu(collectionService *service.CollectionService) {
@@ -132,9 +136,10 @@ func updateCollectionMenu(collectionService *service.CollectionService) {
 		return
 	}
 
-	var name string
 	fmt.Print("Name: ")
-	fmt.Scanln(&name)
+	reader := bufio.NewReader(os.Stdin)
+	name, _ := reader.ReadString('\n')
+	name = strings.TrimSpace(name)
 
 	collection.Name = name
 

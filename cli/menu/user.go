@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"bufio"
 	"clothing-pair-project/entity"
 	"clothing-pair-project/handler"
 	"clothing-pair-project/service"
@@ -59,8 +60,27 @@ func addUserMenu(userService *service.UserService) {
 	fmt.Println("=====================================")
 
 	var username, email, password, role string
-	fmt.Print("Username: ")
-	fmt.Scanln(&username)
+
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			fmt.Print("Username: ")
+			username, _ = reader.ReadString('\n')
+			username = strings.TrimSpace(username)
+			if strings.Contains(username, " ") {
+				fmt.Println("Username cannot contain spaces")
+				continue
+			}
+			break
+		}
+
+		_, err := userService.FindByUsername(username)
+		if err == nil {
+			fmt.Println("Username already exists. Please choose another username.")
+			continue
+		}
+		break
+	}
 
 	for {
 		fmt.Print("Email: ")
@@ -72,8 +92,11 @@ func addUserMenu(userService *service.UserService) {
 		break
 	}
 
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Password: ")
-	fmt.Scanln(&password)
+	password, _ = reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+
 	fmt.Print("Role: ")
 	fmt.Scanln(&role)
 
@@ -141,8 +164,18 @@ func updateUserMenu(userService *service.UserService) {
 	fmt.Println("=====================================")
 
 	var username, email, password, role string
-	fmt.Print("Username: ")
-	fmt.Scanln(&username)
+
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("Username: ")
+		username, _ = reader.ReadString('\n')
+		username = strings.TrimSpace(username)
+		if strings.Contains(username, " ") {
+			fmt.Println("Username cannot contain spaces")
+			continue
+		}
+		break
+	}
 
 	user, err := userService.FindByUsername(username)
 	if err != nil {
@@ -160,8 +193,11 @@ func updateUserMenu(userService *service.UserService) {
 		break
 	}
 
+	reader = bufio.NewReader(os.Stdin)
 	fmt.Print("Password: ")
-	fmt.Scanln(&password)
+	password, _ = reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+
 	fmt.Print("Role: ")
 	fmt.Scanln(&role)
 
@@ -250,8 +286,17 @@ func RegisterUser(db *sqlx.DB) {
 	var username, email, password string
 
 	for {
-		fmt.Print("Username: ")
-		fmt.Scanln(&username)
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			fmt.Print("Username: ")
+			username, _ = reader.ReadString('\n')
+			username = strings.TrimSpace(username)
+			if strings.Contains(username, " ") {
+				fmt.Println("Username cannot contain spaces")
+				continue
+			}
+			break
+		}
 
 		_, err := userService.FindByUsername(username)
 		if err == nil {
@@ -271,8 +316,10 @@ func RegisterUser(db *sqlx.DB) {
 		break
 	}
 
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Password: ")
-	fmt.Scanln(&password)
+	password, _ = reader.ReadString('\n')
+	password = strings.TrimSpace(password)
 
 	user := entity.User{
 		Username: username,

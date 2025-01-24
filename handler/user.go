@@ -45,9 +45,14 @@ func (h *UserHandler) FindByUsername(username string) (entity.User, error) {
 }
 
 func (h *UserHandler) Add(user entity.User) error {
-	query := `INSERT INTO users (username, email, password, role, created_at) 
-              VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`
-	_, err := h.db.Exec(query, user.Username, user.Email, user.Password, user.Role)
+	nextID, err := h.GetNextID()
+	if err != nil {
+		return err
+	}
+
+	query := `INSERT INTO users (user_id, username, email, password, role, created_at) 
+              VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`
+	_, err = h.db.Exec(query, nextID, user.Username, user.Email, user.Password, user.Role)
 	return err
 }
 
@@ -68,4 +73,11 @@ func (h *UserHandler) ResetIncrement() error {
 	query := `ALTER SEQUENCE "User_UserID_seq" RESTART WITH 1`
 	_, err := h.db.Exec(query)
 	return err
+}
+
+func (h *UserHandler) GetNextID() (int, error) {
+	var nextID int
+	query := `SELECT setval('"Users_UserID_seq"', (SELECT MAX(user_id)+1 FROM users));`
+	err := h.db.Get(&nextID, query)
+	return nextID, err
 }
