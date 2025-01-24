@@ -3,6 +3,7 @@ package main
 import (
 	"clothing-pair-project/cli/menu"
 	"clothing-pair-project/config"
+	"clothing-pair-project/entity"
 	"clothing-pair-project/handler"
 	"clothing-pair-project/service"
 
@@ -19,8 +20,22 @@ func main() {
 	}
 	defer db.Close()
 
+	session := &entity.Session{}
+
+	dashboardMenu(db, session)
+
+}
+
+func dashboardMenu(db *sqlx.DB, session *entity.Session) {
 	for {
-		dashboardMenu()
+
+		fmt.Println()
+		fmt.Println("=====================================")
+		fmt.Println("Dashboard Menu")
+		fmt.Println("1. Login")
+		fmt.Println("2. Register")
+		fmt.Println("0. Exit")
+		fmt.Println("=====================================")
 
 		var input int
 		fmt.Print("Choose option: ")
@@ -28,7 +43,7 @@ func main() {
 
 		switch input {
 		case 1:
-			loginMenu(db)
+			loginMenu(db, session)
 		case 2:
 			menu.RegisterUser(db)
 		case 0:
@@ -37,20 +52,11 @@ func main() {
 			fmt.Println("Invalid input")
 		}
 		fmt.Println()
+
 	}
 }
 
-func dashboardMenu() {
-	fmt.Println()
-	fmt.Println("=====================================")
-	fmt.Println("Dashboard Menu")
-	fmt.Println("1. Login")
-	fmt.Println("2. Register")
-	fmt.Println("0. Exit")
-	fmt.Println("=====================================")
-}
-
-func loginMenu(db *sqlx.DB) {
+func loginMenu(db *sqlx.DB, session *entity.Session) {
 	fmt.Println("=====================================")
 
 	var username, password string
@@ -68,6 +74,9 @@ func loginMenu(db *sqlx.DB) {
 	} else if user.Password != password {
 		fmt.Println("Invalid password")
 	} else {
+
+		session.UserData = &user
+
 		log.Println("Successfully login")
 
 		fmt.Println()
@@ -78,7 +87,33 @@ func loginMenu(db *sqlx.DB) {
 		if user.Role == "admin" {
 			adminMenu(db)
 		} else {
-			// TODO: userMenu(db, user)
+			userMenu(db, session)
+		}
+	}
+}
+
+func userMenu(db *sqlx.DB, session *entity.Session) {
+	for {
+		fmt.Println()
+		fmt.Println("=====================================")
+		fmt.Printf("Hi, %s \n", session.UserData.Username)
+		fmt.Println("=====================================")
+		fmt.Println("User Menu")
+		fmt.Println("1. Buy Now")
+		fmt.Println("0. Logout")
+		fmt.Println("=====================================")
+
+		var input int
+		fmt.Print("Choose option: ")
+		fmt.Scanln(&input)
+
+		switch input {
+		case 1:
+			menu.ManageCheckoutMenu(db)
+		case 0:
+			logout(db, session)
+		default:
+			fmt.Println("Invalid input")
 		}
 	}
 }
@@ -126,4 +161,11 @@ func adminMenu(db *sqlx.DB) {
 			fmt.Println("Invalid input")
 		}
 	}
+}
+
+func logout(db *sqlx.DB, session *entity.Session) {
+	session.UserData = nil
+	fmt.Println("You have been logged out.")
+
+	dashboardMenu(db, session)
 }
