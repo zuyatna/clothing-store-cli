@@ -19,8 +19,8 @@ func NewProductsHandler(db *sqlx.DB) *ProductMethodHandler {
 }
 
 func (h *ProductMethodHandler) Add(products entity.Products) error {
-	query := `INSERT INTO products (category_id, color_id, size_id, price, stock, description, image) VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	_, err := h.db.Exec(query, products.Category_Id, products.Color_Id, products.Size_Id, products.Price, products.Stock, products.Description, products.Image)
+	query := `INSERT INTO products (category_id, color_id, size_id, price, stock, description, image, name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	_, err := h.db.Exec(query, products.Category_Id, products.Color_Id, products.Size_Id, products.Price, products.Stock, products.Description, products.Image, products.Name)
 	return err
 }
 
@@ -31,21 +31,23 @@ func (h *ProductMethodHandler) Delete(products int) error {
 }
 
 func (h *ProductMethodHandler) Update(products entity.Products) error {
-	query := `UPDATE products SET category_id = $1, color_id=$2, size_id=$3, price=$4, stock=$5, description=$6, image = $7 WHERE product_id = $8`
-	_, err := h.db.Exec(query, products.Category_Id, products.Color_Id, products.Size_Id, products.Price, products.Stock, products.Description, products.Image, products.Product_Id)
+	query := `UPDATE products SET category_id = $1, color_id=$2, size_id=$3, price=$4, stock=$5, description=$6, image = $7, name = $8 WHERE product_id = $9`
+	_, err := h.db.Exec(query, products.Category_Id, products.Color_Id, products.Size_Id, products.Price, products.Stock, products.Description, products.Image, products.Name, products.Product_Id)
 	return err
 }
 
-func (h *ProductMethodHandler) Find(productID *int) ([]entity.Products, error) {
-	var products []entity.Products
+func (h *ProductMethodHandler) Find(productID *int) ([]entity.ShowDataProducts, error) {
+	var products []entity.ShowDataProducts
 	var query string
 	var err error
 
 	if productID == nil {
-		query = `SELECT * FROM products`
+		query = `select p.product_id, ca.name as category, co.name as color, s.name as size, p.name, p.price, p.stock, p.description, p.image, p.created_at 
+		from products p, categories ca, colors co, sizes s where p.category_id=ca.category_id and p.color_id=co.color_id and p.size_id=s.size_id`
 		err = h.db.Select(&products, query)
 	} else {
-		query = `SELECT * FROM products WHERE product_id = $1`
+		query = `select p.product_id, ca.name as category, co.name as color, s.name as size, p.name, p.price, p.stock, p.description, p.image, p.created_at 
+		from products p, categories ca, colors co, sizes s where p.category_id=ca.category_id and p.color_id=co.color_id and p.size_id=s.size_id and product_id = $1`
 		err = h.db.Select(&products, query, *productID)
 	}
 
@@ -59,18 +61,18 @@ func (h *ProductMethodHandler) Find(productID *int) ([]entity.Products, error) {
 	return products, nil
 }
 
-func ShowDataProduct(namatable string, products []entity.Products) {
+func ShowDataProduct(namatable string, products []entity.ShowDataProducts) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
 
 	fmt.Println(strings.Repeat("=", 40))
 	fmt.Println(strings.Repeat(" ", 15) + namatable + strings.Repeat(" ", 15))
 	fmt.Println(strings.Repeat("=", 40))
-	_, _ = w.Write([]byte("ID\tCategory\tColor\tSize\tPrice\tStock\tDesc\tImage\tCreatedAt\n"))
-	_, _ = w.Write([]byte("--\t--\t--\t--\t--\t--\t--\t--\t--\n"))
+	_, _ = w.Write([]byte("ID\tCategory\tColor\tSize\tName\tPrice\tStock\tDesc\tImage\tCreatedAt\n"))
+	_, _ = w.Write([]byte("--\t--\t--\t--\t--\t--\t--\t--\t--\t--\n"))
 
 	for _, size := range products {
 		_, _ = w.Write([]byte(
-			fmt.Sprintf("%d\t%d\t%d\t%d\t%f\t%d\t%s\t%s\t%s\n", size.Product_Id, size.Category_Id, size.Color_Id, size.Size_Id, size.Price, size.Stock, size.Description, size.Image, size.Created_At),
+			fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%f\t%d\t%s\t%s\t%s\n", size.Product_Id, size.Category_Id, size.Color_Id, size.Size_Id, size.Name, size.Price, size.Stock, size.Description, size.Image, size.Created_At),
 		))
 	}
 

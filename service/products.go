@@ -37,7 +37,7 @@ func (service *ProductMethodService) Delete(productMethodID int) error {
 	return nil
 }
 
-func (service *ProductMethodService) Find(productMethodID *int) ([]entity.Products, error) {
+func (service *ProductMethodService) Find(productMethodID *int) ([]entity.ShowDataProducts, error) {
 	product, err := service.productRepository.Find(productMethodID)
 	if err != nil {
 		return product, err
