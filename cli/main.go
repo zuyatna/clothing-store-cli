@@ -11,5 +11,4 @@ func main() {
 		log.Fatal("Failed to connect db", err.Error())
 	}
 	defer db.Close()
-
 }
