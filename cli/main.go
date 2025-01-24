@@ -29,7 +29,7 @@ func main() {
 		case 1:
 			loginMenu(db)
 		case 2:
-			// TODO: register
+			menu.RegisterUser(db)
 		case 0:
 			return
 		default:
@@ -76,9 +76,45 @@ func loginMenu(db *sqlx.DB) {
 		fmt.Println("=====================================")
 
 		if user.Role == "admin" {
-			menu.AdminMenu(db)
+			adminMenu(db)
 		} else {
 			// TODO: userMenu(db, user)
+		}
+	}
+}
+
+func adminMenu(db *sqlx.DB) {
+	for {
+		fmt.Println()
+		fmt.Println("=====================================")
+		fmt.Println("Admin Menu")
+		fmt.Println("1. Manage User")
+		fmt.Println("2. Manage Product")
+		fmt.Println("3. Manage Collection")
+		fmt.Println("4. Manage Category")
+		fmt.Println("5. Manage Color")
+		fmt.Println("6. Manage Size")
+		fmt.Println("7. Manage Payment Method")
+		fmt.Println("0. Logout")
+		fmt.Println("=====================================")
+
+		var input int
+		fmt.Print("Choose option: ")
+		fmt.Scanln(&input)
+
+		switch input {
+		case 1:
+			menu.ManageUserMenu(db)
+		case 2:
+			// TODO:
+		case 3:
+			// TODO:
+		case 4:
+			// TODO:
+		case 0:
+			return
+		default:
+			fmt.Println("Invalid input")
 		}
 	}
 }

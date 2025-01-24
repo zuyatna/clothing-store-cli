@@ -13,42 +13,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func AdminMenu(db *sqlx.DB) {
-	for {
-		fmt.Println()
-		fmt.Println("=====================================")
-		fmt.Println("Admin Menu")
-		fmt.Println("1. Manage User")
-		fmt.Println("2. Manage Product")
-		fmt.Println("3. Manage Collection")
-		fmt.Println("4. Manage Category")
-		fmt.Println("5. Manage Color")
-		fmt.Println("6. Manage Size")
-		fmt.Println("7. Manage Payment Method")
-		fmt.Println("0. Logout")
-		fmt.Println("=====================================")
-
-		var input int
-		fmt.Print("Choose option: ")
-		fmt.Scanln(&input)
-
-		switch input {
-		case 1:
-			ManageUserMenu(db)
-		case 2:
-			// TODO:
-		case 3:
-			// TODO:
-		case 4:
-			// TODO:
-		case 0:
-			return
-		default:
-			fmt.Println("Invalid input")
-		}
-	}
-}
-
 func ManageUserMenu(db *sqlx.DB) {
 	for {
 		fmt.Println()
@@ -75,11 +39,11 @@ func ManageUserMenu(db *sqlx.DB) {
 		case 2:
 			FindAllUsersMenu(userService)
 		case 3:
-			// TODO: findUserByUsernameMenu(userService)
+			FindUserByUsernameMenu(userService)
 		case 4:
-			// TODO: updateUserMenu(userService)
+			UpdateUserMenu(userService)
 		case 5:
-			// TODO: deleteUserMenu(userService)
+			DeleteUserMenu(userService)
 		case 0:
 			return
 		default:
@@ -134,6 +98,86 @@ func FindAllUsersMenu(userService *service.UserService) {
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
+	AllUser(userService)
+
+	var input string
+	fmt.Print("0. Back: ")
+	fmt.Scanln(&input)
+	if input == "0" {
+		return
+	} else {
+		fmt.Println("Invalid input")
+	}
+}
+
+func FindUserByUsernameMenu(userService *service.UserService) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Find User By Username")
+	fmt.Println("=====================================")
+
+	var username string
+	fmt.Print("Username: ")
+	fmt.Scanln(&username)
+
+	user, err := userService.FindByUsername(username)
+	if err != nil {
+		fmt.Printf("username %v not found\n", username)
+		return
+	}
+
+	fmt.Println("User found:")
+	fmt.Printf("ID: %d\n", user.UserID)
+	fmt.Printf("Username: %s\n", user.Username)
+	fmt.Printf("Email: %s\n", user.Email)
+	fmt.Printf("Role: %s\n", user.Role)
+	fmt.Printf("Created At: %s\n", user.CreatedAt.Format("2006-01-02 15:04:05"))
+}
+
+func UpdateUserMenu(userService *service.UserService) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Update User")
+	fmt.Println("=====================================")
+
+	var username, email, password, role string
+	fmt.Print("Username: ")
+	fmt.Scanln(&username)
+
+	user, err := userService.FindByUsername(username)
+	if err != nil {
+		fmt.Printf("username %v not found\n", username)
+		return
+	}
+
+	for {
+		fmt.Print("Email: ")
+		fmt.Scanln(&email)
+		if !strings.Contains(email, "@") {
+			fmt.Println("Invalid email format. Email must contain @")
+			continue
+		}
+		break
+	}
+
+	fmt.Print("Password: ")
+	fmt.Scanln(&password)
+	fmt.Print("Role: ")
+	fmt.Scanln(&role)
+
+	user.Email = email
+	user.Password = password
+	user.Role = role
+
+	err = userService.Update(user)
+	if err != nil {
+		fmt.Printf("Failed to update user: %v\n", err)
+		return
+	}
+	fmt.Println("User updated successfully!")
+}
+
+func AllUser(userService *service.UserService) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At"})
 
@@ -160,13 +204,87 @@ func FindAllUsersMenu(userService *service.UserService) {
 	table.Render()
 
 	fmt.Println()
+}
+
+func DeleteUserMenu(userService *service.UserService) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Delete User")
+	fmt.Println("=====================================")
+
+	AllUser(userService)
 
 	var input string
-	fmt.Print("0. Back: ")
+	fmt.Println("Input ID to delete (0 to back): ")
+	fmt.Print("Delete ID: ")
 	fmt.Scanln(&input)
-	if input == "0" {
+
+	switch input {
+	case "0":
 		return
-	} else {
-		fmt.Println("Invalid input")
+	default:
+		userID, err := strconv.Atoi(input)
+		if err != nil {
+			fmt.Println("Invalid ID")
+			return
+		}
+
+		err = userService.Delete(userID)
+		if err != nil {
+			fmt.Printf("Failed to delete user: %v\n", err)
+			return
+		}
+		fmt.Println("User deleted successfully!")
 	}
+}
+
+func RegisterUser(db *sqlx.DB) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Register User")
+	fmt.Println("=====================================")
+
+	userHandler := handler.NewUserHandler(db)
+	userService := service.NewUserService(userHandler)
+
+	var username, email, password string
+
+	for {
+		fmt.Print("Username: ")
+		fmt.Scanln(&username)
+
+		_, err := userService.FindByUsername(username)
+		if err == nil {
+			fmt.Println("Username already exists. Please choose another username.")
+			continue
+		}
+		break
+	}
+
+	for {
+		fmt.Print("Email: ")
+		fmt.Scanln(&email)
+		if !strings.Contains(email, "@") {
+			fmt.Println("Invalid email format. Email must contain @")
+			continue
+		}
+		break
+	}
+
+	fmt.Print("Password: ")
+	fmt.Scanln(&password)
+
+	user := entity.User{
+		Username: username,
+		Email:    email,
+		Password: password,
+		Role:     "user",
+	}
+
+	err := userService.Add(user)
+	if err != nil {
+		fmt.Printf("Failed to add user: %v\n", err)
+		return
+	}
+	fmt.Println("User added successfully!")
 }

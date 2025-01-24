@@ -58,7 +58,7 @@ func (h *UserHandler) Delete(userID int) error {
 }
 
 func (h *UserHandler) Update(user entity.User) error {
-	query := `UPDATE users SET username = $1, email = $2, password = $3, roles = $4 
+	query := `UPDATE users SET username = $1, email = $2, password = $3, role = $4 
               WHERE user_id = $5`
 	_, err := h.db.Exec(query, user.Username, user.Email, user.Password, user.Role, user.UserID)
 	return err

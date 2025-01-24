@@ -94,7 +94,7 @@ func TestAddUser(t *testing.T) {
 		user := entity.User{
 			UserID:   1,
 			Username: "user1",
-			Email:    "invalidemail", // Email without @
+			Email:    "invalidemail",
 			Password: "password1",
 			Role:     "user",
 		}
@@ -138,6 +138,24 @@ func TestUpdateUser(t *testing.T) {
 
 		err := userService.Update(user)
 		assert.NoError(t, err)
+		assert.Contains(t, user.Email, "@", "Email should contain @")
+		userServiceRepository.AssertExpectations(t)
+	})
+
+	t.Run("update user with invalid email", func(t *testing.T) {
+		user := entity.User{
+			UserID:   1,
+			Username: "user1",
+			Email:    "invalidemail",
+			Password: "password1",
+			Role:     "user",
+		}
+
+		userServiceRepository.On("Update", user).Return(errDummy).Once()
+
+		err := userService.Update(user)
+		assert.Error(t, err)
+		assert.NotContains(t, user.Email, "@", "Email should contain @")
 		userServiceRepository.AssertExpectations(t)
 	})
 

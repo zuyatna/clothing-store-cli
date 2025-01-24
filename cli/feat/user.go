@@ -68,3 +68,18 @@ func DeleteUser(userService service.UserService, id int) {
 	}
 	log.Println("Successfully deleted user with ID:", id)
 }
+
+func RegisterUser(userService service.UserService, username, email, password, role string) {
+	user := entity.User{
+		Username: username,
+		Email:    email,
+		Password: password,
+		Role:     role,
+	}
+
+	err := userService.Add(user)
+	if err != nil {
+		log.Fatal("Failed to register user:", err.Error())
+	}
+	log.Println("Successfully registered user:", user)
+}
