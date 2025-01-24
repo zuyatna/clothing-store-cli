@@ -1,45 +1,58 @@
+## Note!
+I start to reafactor this project to advanced learning.
+
 ## ERD
 ![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd/clothes.drawio.png?raw=true)
 
 ## Project Structures
-- cli
-- config
-- entity
-- repository
-- helper
-- handler
-- service
+.
+└── project/
+    ├── cmd/
+    │   └── cli/
+    │       └── main.go
+    ├── internal/
+    │   ├── config/
+    │   │   └── config.go
+    │   ├── database/
+    │   │   ├── user.go
+    │   │   ├── product.go
+    │   │   └── ..
+    │   ├── models/
+    │   │   ├── user.go
+    │   │   ├── product.go
+    │   │   └── ..
+    │   ├── services/
+    │   │   ├── user.go
+    │   │   ├── product.go
+    │   │   └── ..
+    │   └── util/
+    │       └── menu
+    │           ├── user.go
+    │           ├── product.go
+    │           └── ..
+    ├── tests/
+    ├── .env
+    ├── .env.example
+    ├── .gitignore
+    ├── go.mod
+    ├── go.sum
+    └── README.md
 
-Disclaimer! config folder yg berisi database ga terupload.
+## Folder Explanation
+- `/cmd` Main applications for this project.
+- `/internal` Contains application core code that is not intended to be used by external packages.
+    - `/config` Manage application configurations (e.g., databases, servers).
+    - `/database` Contains interactions with the database.
+    - `/models` Defines data structures.
+    - `/services` Implementing business logic.
+    - `/utils` Contains general utility functions.
+- `/tests` Contains unit tests and integration tests.
 
-## Features CRUD:
-- products (arif)
-- payment_method (suy)
-- sizes (arif)
-- colors (suy)
-- categories (arif)
-- collections (suy)
-- users (arif)
-- purchases (suy)
+## Requirement Packages:
 
-Note: Penamaan table dan column sama dengan erd.png
-
-## Report:
-- Total product ready (arif)
-- Total purchase (suy)
-- Total revenue (arif)
-- Total user (suy)
-
-Branch sesuai nama, jangan lupa pakai pull request.
-
-## Install package:
-
-go get github.com/jmoiron/sqlx
-
-go get github.com/lib/pq
-
-go get github.com/olekukonko/tablewriter
-
-go get github.com/stretchr/testify/mock
+- `go get github.com/jmoiron/sqlx`
+- `go get github.com/lib/pq`
+- `go get github.com/olekukonko/tablewriter`
+- `go get github.com/stretchr/testify/mock`
 
 
