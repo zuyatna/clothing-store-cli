@@ -8,4 +8,7 @@ type ProductRepository interface {
 	Update(product entity.Products) error
 	Delete(productID int) error
 	AddProduct(product entity.Products) error
+	FindProductByName(productName string) ([]entity.ShowDataProducts, error)
+	UpdateProduct(product entity.Products) error
+	DeleteProduct(productID int) error
 }

@@ -40,11 +40,11 @@ func ManageProductMenu(db *sqlx.DB) {
 		case 2:
 			findAllProductsMenu(productService)
 		case 3:
-			// TODO: Find product by name menu
+			findProductByNameMenu(productService)
 		case 4:
-			// TODO: Update product menu
+			updateProductMenu(productService, db)
 		case 5:
-			// TODO: Delete product menu
+			deleteProductMenu(productService)
 		case 0:
 			return
 		default:
@@ -162,6 +162,38 @@ func AllProducts(productService *service.ProductMethodService) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID, Category", "Color", "Size", "Name", "Price", "Stock", "Desc"})
+	for _, product := range products {
+		table.Append([]string{strconv.Itoa(product.Product_Id), product.Category_Id, product.Color_Id, product.Size_Id, product.Name, strconv.FormatFloat(float64(product.Price), 'f', 2, 32), strconv.Itoa(product.Stock), product.Description})
+	}
+	table.Render()
+
+	fmt.Println()
+}
+
+func findProductByNameMenu(productService *service.ProductMethodService) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Find Product By Name")
+	fmt.Println("=====================================")
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Name: ")
+	name, _ := reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	products, err := productService.FindProductByName(name)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if len(products) == 0 {
+		fmt.Println("No products found")
+		return
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Category", "Color", "Size", "Name", "Price", "Stock", "Desc"})
 	for _, product := range products {
 		table.Append([]string{product.Category_Id, product.Color_Id, product.Size_Id, product.Name, strconv.FormatFloat(float64(product.Price), 'f', 2, 32), strconv.Itoa(product.Stock), product.Description})
@@ -169,4 +201,118 @@ func AllProducts(productService *service.ProductMethodService) {
 	table.Render()
 
 	fmt.Println()
+}
+
+func updateProductMenu(productService *service.ProductMethodService, db *sqlx.DB) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Update Product")
+	fmt.Println("=====================================")
+
+	AllProducts(productService)
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Product ID: ")
+	productIDStr, _ := reader.ReadString('\n')
+	productIDStr = strings.TrimSpace(productIDStr)
+	productID, _ := strconv.Atoi(productIDStr)
+
+	products, err := productService.Find(&productID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if len(products) == 0 {
+		fmt.Println("No products found")
+		return
+	}
+
+	var name, description, image string
+	var categoryID, colorID, sizeID, stock int
+
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Print("Name: ")
+	name, _ = reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+
+	colorHandler := handler.NewColorHandler(db)
+	colorService := service.NewColorService(colorHandler)
+	AllColor(colorService)
+
+	fmt.Print("Color ID: ")
+	fmt.Scanln(&colorID)
+
+	sizeHandler := handler.NewSizesHandler(db)
+	sizeService := service.NewSizeMethodService(sizeHandler)
+	AllSizes(sizeService)
+
+	fmt.Print("Size ID: ")
+	fmt.Scanln(&sizeID)
+
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Print("Description: ")
+
+	description, _ = reader.ReadString('\n')
+	description = strings.TrimSpace(description)
+
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Print("Stock: ")
+	stockStr, _ := reader.ReadString('\n')
+	stockStr = strings.TrimSpace(stockStr)
+
+	stock, _ = strconv.Atoi(stockStr)
+
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Print("Image: ")
+	image, _ = reader.ReadString('\n')
+
+	image = strings.TrimSpace(image)
+
+	categoryHandler := handler.NewCategoryHandler(db)
+	categoryService := service.NewCategoryMethodService(categoryHandler)
+	AllCategory(categoryService)
+
+	fmt.Print("Category ID: ")
+	fmt.Scanln(&categoryID)
+
+	product := entity.Products{
+		Product_Id:  productID,
+		Category_Id: categoryID,
+		Color_Id:    colorID,
+		Size_Id:     sizeID,
+		Name:        name,
+		Stock:       stock,
+		Description: description,
+		Image:       image,
+	}
+
+	err = productService.UpdateProduct(product)
+	if err != nil {
+		fmt.Printf("Failed to update product: %v\n", err)
+		return
+	}
+
+	fmt.Println("Product updated successfully!")
+}
+
+func deleteProductMenu(productService *service.ProductMethodService) {
+	fmt.Println()
+	fmt.Println("=====================================")
+	fmt.Println("Delete Product")
+	fmt.Println("=====================================")
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Product ID: ")
+	productIDStr, _ := reader.ReadString('\n')
+	productIDStr = strings.TrimSpace(productIDStr)
+	productID, _ := strconv.Atoi(productIDStr)
+
+	err := productService.DeleteProduct(productID)
+	if err != nil {
+		fmt.Printf("Failed to delete product: %v\n", err)
+		return
+	}
+
+	fmt.Println("Product deleted successfully!")
 }

@@ -98,3 +98,26 @@ func (h *ProductMethodHandler) GetNextProductID() (int, error) {
 	err := h.db.Get(&nextID, query)
 	return nextID, err
 }
+
+func (h *ProductMethodHandler) FindProductByName(name string) ([]entity.ShowDataProducts, error) {
+	var products []entity.ShowDataProducts
+	query := `select p.product_id, ca.name as category, co.name as color, s.name as size, p.name, p.price, p.stock, p.description, p.image, p.created_at 
+	from products p, categories ca, colors co, sizes s where p.category_id=ca.category_id and p.color_id=co.color_id and p.size_id=s.size_id and p.name = $1`
+	err := h.db.Select(&products, query, name)
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
+func (h *ProductMethodHandler) UpdateProduct(product entity.Products) error {
+	query := `UPDATE products SET category_id = $1, color_id = $2, size_id = $3, name = $4, price = $5, stock = $6, description = $7, image = $8 WHERE product_id = $9`
+	_, err := h.db.Exec(query, product.Category_Id, product.Color_Id, product.Size_Id, product.Name, product.Price, product.Stock, product.Description, product.Image, product.Product_Id)
+	return err
+}
+
+func (h *ProductMethodHandler) DeleteProduct(productID int) error {
+	query := `DELETE FROM products WHERE product_id = $1`
+	_, err := h.db.Exec(query, productID)
+	return err
+}

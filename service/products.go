@@ -52,3 +52,28 @@ func (service *ProductMethodService) AddProduct(productMethod entity.Products) e
 	}
 	return nil
 }
+
+func (service *ProductMethodService) FindProductByName(productName string) ([]entity.ShowDataProducts, error) {
+	product, err := service.productRepository.FindProductByName(productName)
+	if err != nil {
+		return product, err
+	}
+	return product, nil
+
+}
+
+func (service *ProductMethodService) UpdateProduct(productMethod entity.Products) error {
+	err := service.productRepository.UpdateProduct(productMethod)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *ProductMethodService) DeleteProduct(productMethodID int) error {
+	err := service.productRepository.DeleteProduct(productMethodID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
