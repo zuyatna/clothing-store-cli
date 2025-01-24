@@ -1,4 +1,4 @@
-package cli
+package feat
 
 import (
 	"clothing-pair-project/entity"

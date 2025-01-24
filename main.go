@@ -1,7 +1,7 @@
 package main
 
 import (
-	"clothing-pair-project/cli/menus"
+	"clothing-pair-project/cli/menu"
 	"clothing-pair-project/config"
 	"clothing-pair-project/handler"
 	"clothing-pair-project/service"
@@ -75,7 +75,7 @@ func loginMenu(db *sqlx.DB) {
 	fmt.Println("=====================================")
 
 	if user.Role == "admin" {
-		menus.AdminMenu(db)
+		menu.AdminMenu(db)
 	} else {
 		// TODO: userMenu(db, user)
 	}

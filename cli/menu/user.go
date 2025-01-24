@@ -1,4 +1,4 @@
-package menus
+package menu
 
 import (
 	"clothing-pair-project/entity"
