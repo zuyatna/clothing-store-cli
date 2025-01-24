@@ -95,6 +95,7 @@ func adminMenu(db *sqlx.DB) {
 		fmt.Println("5. Manage Color")
 		fmt.Println("6. Manage Size")
 		fmt.Println("7. Manage Payment Method")
+		fmt.Println("8. Reports")
 		fmt.Println("0. Logout")
 		fmt.Println("=====================================")
 
@@ -117,6 +118,8 @@ func adminMenu(db *sqlx.DB) {
 			// TODO: manageSizeMenu(db)
 		case 7:
 			// TODO: managePaymentMethodMenu(db)
+		case 8:
+			menu.ReportMenu(db)
 		case 0:
 			return
 		default:

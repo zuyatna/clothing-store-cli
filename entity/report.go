@@ -13,3 +13,14 @@ type ReportRevenue struct {
 	Month   int     `db:"month"`
 	Revenue float32 `db:"revenue"`
 }
+
+type TotalPurchase struct {
+	ProductID   int     `db:"product_id"`
+	ProductName string  `db:"product_name"`
+	Count       int     `db:"count"`
+	Total       float64 `db:"total"`
+}
+
+type TotalUser struct {
+	Total int `db:"total"`
+}
