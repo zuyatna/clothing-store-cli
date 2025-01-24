@@ -47,37 +47,83 @@ func TestFindPaymentMethodByID(t *testing.T) {
 }
 
 func TestAddPaymentMethod(t *testing.T) {
-	paymentMethod := entity.PaymentMethod{
-		PaymentMethodID: 1,
-		Name:            "Credit Card",
-	}
+	t.Run("add payment method success", func(t *testing.T) {
+		paymentMethod := entity.PaymentMethod{
+			PaymentMethodID: 1,
+			Name:            "Credit Card",
+		}
 
-	paymentMethodRepository.On("Add", paymentMethod).Return(nil)
+		paymentMethodRepository.On("Add", paymentMethod).Return(nil).Once()
 
-	err := paymentMethodService.Add(paymentMethod)
-	assert.NoError(t, err)
-	paymentMethodRepository.AssertExpectations(t)
+		err := paymentMethodService.Add(paymentMethod)
+		assert.NoError(t, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
+
+	t.Run("add payment method failure", func(t *testing.T) {
+		paymentMethod := entity.PaymentMethod{
+			PaymentMethodID: 1,
+			Name:            "Credit Card",
+		}
+
+		expectedErr := assert.AnError
+		paymentMethodRepository.On("Add", paymentMethod).Return(expectedErr).Once()
+
+		err := paymentMethodService.Add(paymentMethod)
+		assert.Error(t, err)
+		assert.Equal(t, expectedErr, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
 }
 
 func TestUpdatePaymentMethod(t *testing.T) {
-	paymentMethod := entity.PaymentMethod{
-		PaymentMethodID: 1,
-		Name:            "Credit Card",
-	}
+	t.Run("update payment method success", func(t *testing.T) {
+		paymentMethod := entity.PaymentMethod{
+			PaymentMethodID: 1,
+			Name:            "Bank Transfer",
+		}
 
-	paymentMethodRepository.On("Update", paymentMethod).Return(nil)
+		paymentMethodRepository.On("Update", paymentMethod).Return(nil).Once()
 
-	err := paymentMethodService.Update(paymentMethod)
-	assert.NoError(t, err)
-	paymentMethodRepository.AssertExpectations(t)
+		err := paymentMethodService.Update(paymentMethod)
+		assert.NoError(t, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
+
+	t.Run("update payment method failure", func(t *testing.T) {
+		paymentMethod := entity.PaymentMethod{
+			PaymentMethodID: 1,
+			Name:            "Bank Transfer",
+		}
+
+		expectedErr := assert.AnError
+		paymentMethodRepository.On("Update", paymentMethod).Return(expectedErr).Once()
+
+		err := paymentMethodService.Update(paymentMethod)
+		assert.Error(t, err)
+		assert.Equal(t, expectedErr, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
 }
 
 func TestDeletePaymentMethod(t *testing.T) {
-	paymentMethodRepository.On("Delete", 1).Return(nil)
+	t.Run("delete payment method success", func(t *testing.T) {
+		paymentMethodRepository.On("Delete", 1).Return(nil).Once()
 
-	err := paymentMethodService.Delete(1)
-	assert.NoError(t, err)
-	paymentMethodRepository.AssertExpectations(t)
+		err := paymentMethodService.Delete(1)
+		assert.NoError(t, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
+
+	t.Run("delete payment method failure", func(t *testing.T) {
+		expectedErr := assert.AnError
+		paymentMethodRepository.On("Delete", 1).Return(expectedErr).Once()
+
+		err := paymentMethodService.Delete(1)
+		assert.Error(t, err)
+		assert.Equal(t, expectedErr, err)
+		paymentMethodRepository.AssertExpectations(t)
+	})
 }
 
 func TestResetIncrementPaymentMethod(t *testing.T) {
