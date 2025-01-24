@@ -4,6 +4,7 @@ import (
 	"clothing-pair-project/entity"
 	"clothing-pair-project/repository"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,10 +18,12 @@ func TestFindAllCollection(t *testing.T) {
 		{
 			CollectionID: 1,
 			Name:         "T-Shirt",
+			CreatedAt:    time.Now(),
 		},
 		{
 			CollectionID: 2,
 			Name:         "Pants",
+			CreatedAt:    time.Now(),
 		},
 	}
 
@@ -36,6 +39,7 @@ func TestFindCollectionByID(t *testing.T) {
 	collection := entity.Collection{
 		CollectionID: 1,
 		Name:         "T-Shirt",
+		CreatedAt:    time.Now(),
 	}
 
 	collectionServiceRepository.On("FindByID", 1).Return(collection, nil)

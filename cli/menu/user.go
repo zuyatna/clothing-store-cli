@@ -35,15 +35,15 @@ func ManageUserMenu(db *sqlx.DB) {
 
 		switch input {
 		case 1:
-			AddUserMenu(userService)
+			addUserMenu(userService)
 		case 2:
-			FindAllUsersMenu(userService)
+			findAllUsersMenu(userService)
 		case 3:
-			FindUserByUsernameMenu(userService)
+			findUserByUsernameMenu(userService)
 		case 4:
-			UpdateUserMenu(userService)
+			updateUserMenu(userService)
 		case 5:
-			DeleteUserMenu(userService)
+			deleteUserMenu(userService)
 		case 0:
 			return
 		default:
@@ -52,7 +52,7 @@ func ManageUserMenu(db *sqlx.DB) {
 	}
 }
 
-func AddUserMenu(userService *service.UserService) {
+func addUserMenu(userService *service.UserService) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Add User")
@@ -92,13 +92,13 @@ func AddUserMenu(userService *service.UserService) {
 	fmt.Println("User added successfully!")
 }
 
-func FindAllUsersMenu(userService *service.UserService) {
+func findAllUsersMenu(userService *service.UserService) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	AllUser(userService)
+	allUser(userService)
 
 	var input string
 	fmt.Print("0. Back: ")
@@ -110,7 +110,7 @@ func FindAllUsersMenu(userService *service.UserService) {
 	}
 }
 
-func FindUserByUsernameMenu(userService *service.UserService) {
+func findUserByUsernameMenu(userService *service.UserService) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Find User By Username")
@@ -134,7 +134,7 @@ func FindUserByUsernameMenu(userService *service.UserService) {
 	fmt.Printf("Created At: %s\n", user.CreatedAt.Format("2006-01-02 15:04:05"))
 }
 
-func UpdateUserMenu(userService *service.UserService) {
+func updateUserMenu(userService *service.UserService) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Update User")
@@ -177,7 +177,7 @@ func UpdateUserMenu(userService *service.UserService) {
 	fmt.Println("User updated successfully!")
 }
 
-func AllUser(userService *service.UserService) {
+func allUser(userService *service.UserService) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At"})
 
@@ -206,13 +206,13 @@ func AllUser(userService *service.UserService) {
 	fmt.Println()
 }
 
-func DeleteUserMenu(userService *service.UserService) {
+func deleteUserMenu(userService *service.UserService) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Delete User")
 	fmt.Println("=====================================")
 
-	AllUser(userService)
+	allUser(userService)
 
 	var input string
 	fmt.Println("Input ID to delete (0 to back): ")
