@@ -3,9 +3,6 @@ package handler
 import (
 	"clothing-pair-project/entity"
 	"fmt"
-	"os"
-	"strings"
-	"text/tabwriter"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -45,25 +42,6 @@ func (h *ReportHandler) ReportNeedRestock() ([]entity.ReportNeedRestock, error) 
 	return report, nil
 }
 
-func ShowDataNeedRestock(namatable string, datas []entity.ReportNeedRestock) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
-
-	fmt.Println(strings.Repeat("=", 40))
-	fmt.Println(strings.Repeat(" ", 15) + namatable + strings.Repeat(" ", 15))
-	fmt.Println(strings.Repeat("=", 40))
-	_, _ = w.Write([]byte("Name\tCategory\tColor\tSize\tStock\n"))
-	_, _ = w.Write([]byte("--\t--\t--\t--\t--\n"))
-
-	for _, data := range datas {
-		_, _ = w.Write([]byte(
-			fmt.Sprintf("%s\t%s\t%s\t%s\t%d\n", data.Name, data.Category, data.Color, data.Size, data.Stock),
-		))
-	}
-
-	_ = w.Flush()
-	fmt.Println(strings.Repeat("=", 40))
-}
-
 func (h *ReportHandler) ReportRevenue(year, month int) ([]entity.ReportRevenue, error) {
 	var report []entity.ReportRevenue
 	query := `SELECT 
@@ -85,21 +63,38 @@ func (h *ReportHandler) ReportRevenue(year, month int) ([]entity.ReportRevenue, 
 	return report, nil
 }
 
-func ShowDataNeedRevenue(namatable string, datas []entity.ReportRevenue) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.Debug)
+func (h *ReportHandler) TotalPurchase() ([]entity.TotalPurchase, error) {
+	var report []entity.TotalPurchase
+	query := `SELECT 
+				pd.product_id,
+				p.name as product_name,
+				COUNT(pd.product_id) as count,
+				COALESCE(SUM(pd.sub_total), 0) as total
+			FROM 
+				purchase_details pd
+				JOIN products p ON pd.product_id = p.product_id
+			GROUP BY 
+				pd.product_id, p.name
+			ORDER BY
+				pd.product_id ASC`
 
-	fmt.Println(strings.Repeat("=", 40))
-	fmt.Println(strings.Repeat(" ", 15) + namatable + strings.Repeat(" ", 15))
-	fmt.Println(strings.Repeat("=", 40))
-	_, _ = w.Write([]byte("Year\tMonth\tRevenue\n"))
-	_, _ = w.Write([]byte("--\t--\t--\n"))
-
-	for _, data := range datas {
-		_, _ = w.Write([]byte(
-			fmt.Sprintf("%d\t%d\t%.2f\n", data.Year, data.Month, data.Revenue),
-		))
+	if err := h.db.Select(&report, query); err != nil {
+		return nil, fmt.Errorf("error getting total purchase: %v", err)
 	}
 
-	_ = w.Flush()
-	fmt.Println(strings.Repeat("=", 40))
+	return report, nil
+}
+
+func (h *ReportHandler) TotalUser() ([]entity.TotalUser, error) {
+	var report []entity.TotalUser
+	query := `SELECT 
+				COUNT(user_id) as total
+			FROM 
+				users`
+
+	err := h.db.Select(&report, query)
+	if err != nil {
+		return nil, err
+	}
+	return report, nil
 }
