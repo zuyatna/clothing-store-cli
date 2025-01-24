@@ -79,3 +79,22 @@ func ShowDataProduct(namatable string, products []entity.ShowDataProducts) {
 	_ = w.Flush()
 	fmt.Println(strings.Repeat("=", 40))
 }
+
+func (h *ProductMethodHandler) AddProduct(product entity.Products) error {
+	nextID, err := h.GetNextProductID()
+	if err != nil {
+		return err
+	}
+
+	query := `INSERT INTO products (product_id, category_id, color_id, size_id, name, price, stock, description, image, created_at) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)`
+	_, err = h.db.Exec(query, nextID, product.Category_Id, product.Color_Id, product.Size_Id, product.Name, product.Price, product.Stock, product.Description, product.Image)
+	return err
+}
+
+func (h *ProductMethodHandler) GetNextProductID() (int, error) {
+	var nextID int
+	query := `SELECT setval('products_product_id_seq', (SELECT MAX(product_id)+1 FROM products));`
+	err := h.db.Get(&nextID, query)
+	return nextID, err
+}

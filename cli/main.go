@@ -107,13 +107,13 @@ func adminMenu(db *sqlx.DB) {
 		case 1:
 			menu.ManageUserMenu(db)
 		case 2:
-			// TODO: manageProductMenu(db)
+			menu.ManageProductMenu(db)
 		case 3:
 			menu.ManageCollectionMenu(db)
 		case 4:
-			// TODO: manageCategoryMenu(db)
+			menu.ManageCategoryMenu(db)
 		case 5:
-			// TODO: manageColorMenu(db)
+			menu.ManageColorMenu(db)
 		case 6:
 			// TODO: manageSizeMenu(db)
 		case 7:

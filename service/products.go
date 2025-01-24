@@ -44,3 +44,11 @@ func (service *ProductMethodService) Find(productMethodID *int) ([]entity.ShowDa
 	}
 	return product, nil
 }
+
+func (service *ProductMethodService) AddProduct(productMethod entity.Products) error {
+	err := service.productRepository.AddProduct(productMethod)
+	if err != nil {
+		return err
+	}
+	return nil
+}
