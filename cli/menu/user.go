@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/olekukonko/tablewriter"
@@ -18,9 +19,12 @@ func AdminMenu(db *sqlx.DB) {
 		fmt.Println("=====================================")
 		fmt.Println("Admin Menu")
 		fmt.Println("1. Manage User")
-		fmt.Println("2. Manage Color")
-		fmt.Println("3. Manage Payment Method")
-		fmt.Println("4. Manage Collection")
+		fmt.Println("2. Manage Product")
+		fmt.Println("3. Manage Collection")
+		fmt.Println("4. Manage Category")
+		fmt.Println("5. Manage Color")
+		fmt.Println("6. Manage Size")
+		fmt.Println("7. Manage Payment Method")
 		fmt.Println("0. Logout")
 		fmt.Println("=====================================")
 
@@ -32,11 +36,11 @@ func AdminMenu(db *sqlx.DB) {
 		case 1:
 			ManageUserMenu(db)
 		case 2:
-			// TODO: manageColorMenu(db)
+			// TODO:
 		case 3:
-			// TODO: managePaymentMethodMenu(db)
+			// TODO:
 		case 4:
-			// TODO: manageCollectionMenu(db)
+			// TODO:
 		case 0:
 			return
 		default:
@@ -93,8 +97,17 @@ func AddUserMenu(userService *service.UserService) {
 	var username, email, password, role string
 	fmt.Print("Username: ")
 	fmt.Scanln(&username)
-	fmt.Print("Email: ")
-	fmt.Scanln(&email)
+
+	for {
+		fmt.Print("Email: ")
+		fmt.Scanln(&email)
+		if !strings.Contains(email, "@") {
+			fmt.Println("Invalid email format. Email must contain @")
+			continue
+		}
+		break
+	}
+
 	fmt.Print("Password: ")
 	fmt.Scanln(&password)
 	fmt.Print("Role: ")
@@ -106,7 +119,13 @@ func AddUserMenu(userService *service.UserService) {
 		Password: password,
 		Role:     role,
 	}
-	userService.Add(user)
+
+	err := userService.Add(user)
+	if err != nil {
+		fmt.Printf("Failed to add user: %v\n", err)
+		return
+	}
+	fmt.Println("User added successfully!")
 }
 
 func FindAllUsersMenu(userService *service.UserService) {

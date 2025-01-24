@@ -45,7 +45,7 @@ func (h *UserHandler) FindByUsername(username string) (entity.User, error) {
 }
 
 func (h *UserHandler) Add(user entity.User) error {
-	query := `INSERT INTO users (username, email, password, roles, created_at) 
+	query := `INSERT INTO users (username, email, password, role, created_at) 
               VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`
 	_, err := h.db.Exec(query, user.Username, user.Email, user.Password, user.Role)
 	return err

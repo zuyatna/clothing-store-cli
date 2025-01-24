@@ -20,6 +20,7 @@ func main() {
 
 	for {
 		dashboardMenu()
+
 		var input int
 		fmt.Print("Choose option: ")
 		fmt.Scanln(&input)
@@ -27,7 +28,6 @@ func main() {
 		switch input {
 		case 1:
 			loginMenu(db)
-			return
 		case 2:
 			// TODO: register
 		case 0:
@@ -35,10 +35,12 @@ func main() {
 		default:
 			fmt.Println("Invalid input")
 		}
+		fmt.Println()
 	}
 }
 
 func dashboardMenu() {
+	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Dashboard Menu")
 	fmt.Println("1. Login")
@@ -48,7 +50,6 @@ func dashboardMenu() {
 }
 
 func loginMenu(db *sqlx.DB) {
-	fmt.Println()
 	fmt.Println("=====================================")
 
 	var username, password string
@@ -62,21 +63,22 @@ func loginMenu(db *sqlx.DB) {
 
 	user, err := userService.FindByUsername(username)
 	if err != nil {
-		log.Fatal("Failed to find user by username:", err.Error())
+		fmt.Println("Invalid username")
 	}
 	if user.Password != password {
-		log.Fatal("Invalid password")
-	}
-	log.Println("Successfully login")
-
-	fmt.Println()
-	fmt.Println("=====================================")
-	fmt.Printf("Hi, %s", user.Username)
-	fmt.Println("=====================================")
-
-	if user.Role == "admin" {
-		menu.AdminMenu(db)
+		fmt.Println("Invalid password")
 	} else {
-		// TODO: userMenu(db, user)
+		log.Println("Successfully login")
+
+		fmt.Println()
+		fmt.Println("=====================================")
+		fmt.Printf("Hi, %s \n", user.Username)
+		fmt.Println("=====================================")
+
+		if user.Role == "admin" {
+			menu.AdminMenu(db)
+		} else {
+			// TODO: userMenu(db, user)
+		}
 	}
 }

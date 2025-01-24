@@ -86,6 +86,24 @@ func TestAddUser(t *testing.T) {
 
 		err := userService.Add(user)
 		assert.NoError(t, err)
+		assert.Contains(t, user.Email, "@", "Email should contain @")
+		userServiceRepository.AssertExpectations(t)
+	})
+
+	t.Run("add user with invalid email", func(t *testing.T) {
+		user := entity.User{
+			UserID:   1,
+			Username: "user1",
+			Email:    "invalidemail", // Email without @
+			Password: "password1",
+			Role:     "user",
+		}
+
+		userServiceRepository.On("Add", user).Return(errDummy).Once()
+
+		err := userService.Add(user)
+		assert.Error(t, err)
+		assert.NotContains(t, user.Email, "@", "Email should contain @")
 		userServiceRepository.AssertExpectations(t)
 	})
 
