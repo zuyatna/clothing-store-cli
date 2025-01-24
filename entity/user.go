@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
 	UserID    int       `json:"user_id" db:"user_id"`
@@ -9,4 +11,8 @@ type User struct {
 	Password  string    `json:"password" db:"password"`
 	Role      string    `json:"role" db:"role"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
+}
+
+type Session struct {
+	UserData *User
 }
