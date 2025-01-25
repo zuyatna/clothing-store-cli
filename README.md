@@ -1,5 +1,5 @@
 ## Note!
-I start to reafactor this project to advanced learning.
+I start to refactor this project to advanced learning.
 
 ## ERD
 ![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd/clothes.drawio.png?raw=true)
