@@ -2,7 +2,7 @@
 I start to refactor this project to advanced learning.
 
 ## ERD
-![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd/clothes.drawio.png?raw=true)
+![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd.png?raw=true)
 
 ## Project Structures
 ```
@@ -61,5 +61,6 @@ I start to refactor this project to advanced learning.
 - `go get github.com/lib/pq`
 - `go get github.com/olekukonko/tablewriter`
 - `go get github.com/stretchr/testify/mock`
+- `go get golang.org/x/crypto/ssh/terminal`
 
 

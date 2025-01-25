@@ -1,11 +1,8 @@
 package menu
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"os"
-	"strings"
 )
 
 func DashboardMenu(db *sqlx.DB) {
@@ -16,14 +13,18 @@ func DashboardMenu(db *sqlx.DB) {
 		fmt.Println("0. Exit")
 
 		var input string
-		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Choose an option: ")
-		input, _ = reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+		_, err := fmt.Scanln(&input)
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			return
+		}
+
+		fmt.Println()
 
 		switch input {
 		case "1":
-			// TODO: Implement login
+			LoginMenu(db)
 		case "2":
 			// TODO: Implement register
 		case "0":
@@ -31,6 +32,5 @@ func DashboardMenu(db *sqlx.DB) {
 		default:
 			fmt.Println("Invalid input. Please try again.")
 		}
-		fmt.Println()
 	}
 }
