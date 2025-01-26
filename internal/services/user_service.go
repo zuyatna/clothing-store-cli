@@ -36,3 +36,7 @@ func (service *UserService) UpdateUser(user models.User) error {
 func (service *UserService) DeleteUser(id int) error {
 	return service.userRepository.Delete(id)
 }
+
+func (service *UserService) EnumRole() (string, error) {
+	return service.userRepository.EnumRole()
+}

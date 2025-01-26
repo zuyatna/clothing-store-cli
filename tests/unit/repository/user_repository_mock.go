@@ -2,6 +2,7 @@ package repository
 
 import (
 	"clothing-pair-project/internal/models"
+
 	"github.com/stretchr/testify/mock"
 )
 
@@ -38,4 +39,9 @@ func (m *MockUserRepository) Update(user models.User) error {
 func (m *MockUserRepository) Delete(id int) error {
 	args := m.Called(id)
 	return args.Error(0)
+}
+
+func (m *MockUserRepository) EnumRole() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
 }

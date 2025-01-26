@@ -2,6 +2,8 @@ package sql
 
 import (
 	"clothing-pair-project/internal/models"
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -49,10 +51,12 @@ func (repository *UserRepository) FindByUsername(username string) (models.User, 
 func (repository *UserRepository) Add(user models.User) error {
 	nextID, err := repository.GetNextID()
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting next ID: %v", err)
 	}
 
-	query := "INSERT INTO users (user_id, username, email, password, role, created_at, active) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, true)"
+	query := `INSERT INTO users (user_id, username, email, password, role, created_at, active) 
+              VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, true)`
+
 	_, err = repository.db.Exec(query, nextID, user.Username, user.Email, user.Password, user.Role)
 	if err != nil {
 		return err
@@ -83,8 +87,23 @@ func (repository *UserRepository) Delete(id int) error {
 
 func (repository *UserRepository) GetNextID() (int, error) {
 	var id int
-	query := "SELECT setval('\"Users_UserID_seq\"', (SELECT MAX(user_id)+1 FROM users))"
-	err := repository.db.Get(&id, query)
+
+	createSeq := `DO $$ 
+    BEGIN
+        CREATE SEQUENCE IF NOT EXISTS "Users_UserID_seq";
+    END $$;`
+
+	_, err := repository.db.Exec(createSeq)
+	if err != nil {
+		return 0, err
+	}
+
+	query := `SELECT COALESCE(
+        (SELECT MAX(user_id) + 1 FROM users), 
+        nextval('"Users_UserID_seq"')
+    )`
+
+	err = repository.db.Get(&id, query)
 	if err != nil {
 		return 0, err
 	}

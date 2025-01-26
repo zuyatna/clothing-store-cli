@@ -3,6 +3,7 @@ package menu
 import (
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -28,7 +29,7 @@ func DashboardMenu(db *sqlx.DB, message string) {
 
 	switch input {
 	case "1":
-		LoginMenu(db, "")
+		LoginMenu(db)
 	case "2":
 		// TODO: Implement register
 	case "0":
@@ -38,7 +39,6 @@ func DashboardMenu(db *sqlx.DB, message string) {
 		message = "Invalid input. Please try again."
 		fmt.Println(message)
 		fmt.Println()
-
 		DashboardMenu(db, message)
 	}
 }

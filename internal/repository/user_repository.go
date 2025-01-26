@@ -9,4 +9,5 @@ type UserRepository interface {
 	Add(user models.User) error
 	Update(user models.User) error
 	Delete(id int) error
+	EnumRole() (string, error)
 }

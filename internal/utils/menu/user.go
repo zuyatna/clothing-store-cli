@@ -3,16 +3,18 @@ package menu
 import (
 	"bufio"
 	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	"github.com/olekukonko/tablewriter"
 	"os"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/olekukonko/tablewriter"
 
 	_ "github.com/lib/pq"
 )
@@ -57,7 +59,7 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	case "3":
 		findUserByUsername(db, userService, "")
 	case "4":
-		// TODO: update user menu
+		updateUserMenu(db, userService, "")
 	case "5":
 		deleteUserMenu(db, userService, "")
 	case "0":
@@ -111,11 +113,11 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 	fmt.Println("Add User")
 	fmt.Println("=====================================")
 
-	reader := bufio.NewReader(os.Stdin)
-
 	fmt.Println()
 	fmt.Println(message)
 	fmt.Println()
+
+	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter username: ")
 	username, err := reader.ReadString('\n')
@@ -136,16 +138,6 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		addUserMenu(db, userService, message)
 	} else if strings.Contains(username, " ") {
 		message = "Username cannot contain spaces"
-		fmt.Println(message)
-		fmt.Println()
-
-		addUserMenu(db, userService, message)
-	}
-
-	user, _ := userService.GetUserByUsername(username)
-
-	if user.Username == username {
-		message = "Username already exists"
 		fmt.Println(message)
 		fmt.Println()
 
@@ -183,7 +175,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		addUserMenu(db, userService, message)
 	}
 
-	password, err := terminal.HidePassword("Enter Password (min 8 characters): ")
+	password, err := terminal.HidePassword("Enter Password: ")
 	if err != nil {
 		message = "Error reading password"
 		fmt.Println(message)
@@ -198,12 +190,6 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		fmt.Println()
 
 		addUserMenu(db, userService, message)
-	} else if len(password) < 8 {
-		message = "Password must be at least 8 characters"
-		fmt.Println(message)
-		fmt.Println()
-
-		addUserMenu(db, userService, message)
 	} else if strings.Contains(string(password), " ") {
 		message = "Password cannot contain spaces"
 		fmt.Println(message)
@@ -212,7 +198,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		addUserMenu(db, userService, message)
 	}
 
-	confirmPassword, err := terminal.HidePassword("Confirm Password (min 8 characters):")
+	confirmPassword, err := terminal.HidePassword("Confirm Password:")
 	if err != nil {
 		message = "Error reading password"
 		fmt.Println(message)
@@ -286,25 +272,33 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 	}
 	fmt.Println()
 
-	user = models.User{
+	hashedPassword, err := helper.HashPassword(string(password))
+	if err != nil {
+		message = "Error hashing password"
+		fmt.Println(message)
+		fmt.Println()
+		addUserMenu(db, userService, message)
+		return
+	}
+
+	user := models.User{
 		Username: username,
 		Email:    email,
-		Password: string(password),
+		Password: hashedPassword,
 		Role:     role,
-		Active:   true,
 	}
 
 	err = userService.AddUser(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "users_email_key") {
 			message = "Email already exists"
+		} else if strings.Contains(err.Error(), "users_username_key") {
+			message = "Username already exists"
 		} else {
-			message = "Error adding user"
+			message = fmt.Sprintf("Error adding user: %v", err)
 		}
-
 		fmt.Println(message)
 		fmt.Println()
-
 		addUserMenu(db, userService, message)
 	}
 
@@ -417,6 +411,250 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, message 
 		ManageUserMenu(db, message)
 	}
 	ManageUserMenu(db, "")
+}
+
+func updateUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+	terminal.Clear()
+
+	fmt.Println("=====================================")
+	fmt.Println("Update User")
+	fmt.Println("=====================================")
+
+	allUser(userService)
+
+	fmt.Println()
+	fmt.Println(message)
+	fmt.Println()
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Enter User ID: ")
+	userID, err := reader.ReadString('\n')
+	if err != nil {
+		message = "Error reading input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	if userID == "" {
+		message = "User ID cannot be empty"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	} else if strings.Contains(userID, " ") {
+		message = "User ID cannot contain spaces"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
+	if err != nil {
+		message = "User ID must be a number"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	user, err := userService.GetUserByID(userIDInt)
+	if err != nil {
+		message = "User not found"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	fmt.Println("Current Username:", user.Username)
+
+	fmt.Print("Do you want to update username? (y/n): ")
+	updateUsername, err := reader.ReadString('\n')
+	updateUsername = strings.TrimSpace(updateUsername)
+	if err != nil {
+		message = "Error reading input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	if updateUsername == "y" {
+		fmt.Print("Enter new username: ")
+		username, err := reader.ReadString('\n')
+		username = strings.TrimSpace(username)
+		if err != nil {
+			message = "Error reading input"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		if username == "" {
+			message = "Username cannot be empty"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		} else if strings.Contains(username, " ") {
+			message = "Username cannot contain spaces"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		user.Username = username
+	} else if updateUsername != "n" {
+		message = "Invalid input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	fmt.Println("Current Email:", user.Email)
+
+	fmt.Print("Do you want to update email? (y/n): ")
+	updateEmail, err := reader.ReadString('\n')
+	updateEmail = strings.TrimSpace(updateEmail)
+	if err != nil {
+		message = "Error reading input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	if updateEmail == "y" {
+		fmt.Print("Enter new email: ")
+		email, err := reader.ReadString('\n')
+		email = strings.TrimSpace(email)
+		if err != nil {
+			message = "Error reading input"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		if email == "" {
+			message = "Email cannot be empty"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		} else if strings.Contains(email, " ") {
+			message = "Email cannot contain spaces"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		} else if !strings.Contains(email, "@") {
+			message = "Invalid email format"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		user.Email = email
+	} else if updateEmail != "n" {
+		message = "Invalid input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	fmt.Print("Do you want to update password? (y/n): ")
+	updatePassword, err := reader.ReadString('\n')
+	updatePassword = strings.TrimSpace(updatePassword)
+	if err != nil {
+		message = "Error reading input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	if updatePassword == "y" {
+		password, err := terminal.HidePassword("Enter new password (min 8 characters): ")
+		if err != nil {
+			message = "Error reading password"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		if password == nil {
+			message = "Password cannot be empty"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		} else if len(password) < 8 {
+			message = "Password must be at least 8 characters"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		} else if strings.Contains(string(password), " ") {
+			message = "Password cannot contain spaces"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		confirmPassword, err := terminal.HidePassword("Confirm new password (min 8 characters):")
+		if err != nil {
+			message = "Error reading password"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		if string(password) != string(confirmPassword) {
+			message = "Password and confirm password do not match"
+			fmt.Println(message)
+			fmt.Println()
+
+			updateUserMenu(db, userService, message)
+		}
+
+		user.Password = string(password)
+	} else if updatePassword != "n" {
+		message = "Invalid input"
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	err = userService.UpdateUser(user)
+	if err != nil {
+		if strings.Contains(err.Error(), "users_email_key") {
+			message = "Email already exists"
+		} else if strings.Contains(err.Error(), "users_username_key") {
+			message = "Username already exists"
+		} else {
+			message = "Error updating user"
+		}
+		fmt.Println(message)
+		fmt.Println()
+
+		updateUserMenu(db, userService, message)
+	}
+
+	ManageUserMenu(db, "Successfully updated user with ID "+strconv.Itoa(user.UserID))
 }
 
 func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message string) {

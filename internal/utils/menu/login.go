@@ -2,13 +2,15 @@ package menu
 
 import (
 	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
-func LoginMenu(db *sqlx.DB, message string) {
+func LoginMenu(db *sqlx.DB) {
 	terminal.Clear()
 
 	var username, password string
@@ -30,12 +32,12 @@ func LoginMenu(db *sqlx.DB, message string) {
 	userService := services.NewUserService(userRepository)
 
 	user, err := userService.GetUserByUsername(username)
-	if err != nil || user.Password != password {
-		message = "Wrong username or password"
-		fmt.Println(message)
+	if err != nil || !helper.CheckPasswordHash(password, user.Password) {
+		errorMessage := "Wrong username or password"
+		fmt.Println(errorMessage)
 		fmt.Println()
 
-		DashboardMenu(db, message)
+		DashboardMenu(db, errorMessage)
 	} else {
 		fmt.Println()
 		fmt.Println("=====================================")

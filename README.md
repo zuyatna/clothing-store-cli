@@ -61,5 +61,4 @@ I start to refactor this project to advanced learning.
 - `go get github.com/olekukonko/tablewriter`
 - `go get github.com/stretchr/testify/mock`
 - `go get golang.org/x/term`
-
-
+- `go get golang.org/x/crypto/bcrypt`
