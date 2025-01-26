@@ -49,18 +49,17 @@ I start to refactor this project to advanced learning.
     - `/config` Manage application configurations (e.g., databases, servers).
     - `/database` Contains interactions with the database.
     - `/models` Defines data structures.
-    - `/repository` Testing interactions with databases or other data sources.
+    - `/repository` Manage interactions with databases or other data sources.
     - `/services` Implementing business logic.
     - `/utils` Contains general utility functions.
-- `/tests` Contains unit tests and integration tests.
+- `/tests` Contains unit tests and integration tests. The test is designed to check the behavior method, not the actual content.
 
-## Requirement Packages:
-
+## Package Requirements:
 - `go get github.com/spf13/viper`
 - `go get github.com/jmoiron/sqlx`
 - `go get github.com/lib/pq`
 - `go get github.com/olekukonko/tablewriter`
 - `go get github.com/stretchr/testify/mock`
-- `go get golang.org/x/crypto/ssh/terminal`
+- `go get golang.org/x/term`
 
 

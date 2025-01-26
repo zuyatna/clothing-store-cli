@@ -1,11 +1,9 @@
 package menu
 
 import (
+	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
-	"syscall"
-
 	"github.com/jmoiron/sqlx"
-	"golang.org/x/term"
 )
 
 func LoginMenu(db *sqlx.DB) {
@@ -18,16 +16,15 @@ func LoginMenu(db *sqlx.DB) {
 		return
 	}
 
-	fmt.Print("Enter password: ")
-	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Print("Enter terminal: ")
+	passwordBytes, err := terminal.HidePassword()
 	if err != nil {
-		fmt.Println("\nFailed to read password:")
-		fmt.Println(err.Error())
+		fmt.Println("Error reading terminal:", err)
 		return
 	}
 	password = string(passwordBytes)
 
-	// TODO: Use the password
+	// TODO: Use the terminal
 
 	fmt.Println(username, password)
 	fmt.Println()
