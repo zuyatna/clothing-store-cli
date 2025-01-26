@@ -4,8 +4,9 @@ import (
 	"clothing-pair-project/internal/config"
 	"clothing-pair-project/internal/database/postgres"
 	"clothing-pair-project/internal/utils/menu"
-	"github.com/jmoiron/sqlx"
 	"log"
+
+	"github.com/jmoiron/sqlx"
 
 	_ "github.com/lib/pq"
 )
@@ -27,5 +28,5 @@ func main() {
 		}
 	}(db)
 
-	menu.DashboardMenu(db)
+	menu.DashboardMenu(db, "")
 }
