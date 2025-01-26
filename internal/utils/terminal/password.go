@@ -8,9 +8,9 @@ import (
 	"syscall"
 )
 
-func HidePassword() ([]byte, error) {
+func HidePassword(message string) ([]byte, error) {
 	if term.IsTerminal(int(syscall.Stdin)) {
-		fmt.Print("Enter password: ")
+		fmt.Printf(message)
 		passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			return nil, err
@@ -24,6 +24,6 @@ func HidePassword() ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return passwordBytes[:len(passwordBytes)-1], nil // Remove the newline character
+		return passwordBytes[:len(passwordBytes)-1], nil
 	}
 }

@@ -15,6 +15,11 @@ func (m *MockUserRepository) FindAll() ([]models.User, error) {
 	return args.Get(0).([]models.User), args.Error(1)
 }
 
+func (m *MockUserRepository) FindByID(id int) (models.User, error) {
+	args := m.Called(id)
+	return args.Get(0).(models.User), args.Error(1)
+}
+
 func (m *MockUserRepository) FindByUsername(username string) (models.User, error) {
 	args := m.Called(username)
 	return args.Get(0).(models.User), args.Error(1)
@@ -30,7 +35,7 @@ func (m *MockUserRepository) Update(user models.User) error {
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) Delete(username string) error {
-	args := m.Called(username)
+func (m *MockUserRepository) Delete(id int) error {
+	args := m.Called(id)
 	return args.Error(0)
 }

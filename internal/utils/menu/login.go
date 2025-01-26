@@ -8,9 +8,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func LoginMenu(db *sqlx.DB) {
-	var username, password string
+func LoginMenu(db *sqlx.DB, message string) {
+	terminal.Clear()
 
+	var username, password string
 	fmt.Print("Enter username: ")
 	_, err := fmt.Scanln(&username)
 	if err != nil {
@@ -18,7 +19,7 @@ func LoginMenu(db *sqlx.DB) {
 		return
 	}
 
-	passwordBytes, err := terminal.HidePassword()
+	passwordBytes, err := terminal.HidePassword("Enter Password:")
 	if err != nil {
 		fmt.Println("Error reading terminal:", err)
 		return
@@ -30,18 +31,18 @@ func LoginMenu(db *sqlx.DB) {
 
 	user, err := userService.GetUserByUsername(username)
 	if err != nil || user.Password != password {
-		fmt.Println("Wrong username or password")
+		message = "Wrong username or password"
+		fmt.Println(message)
 		fmt.Println()
 
-		DashboardMenu(db)
+		DashboardMenu(db, message)
 	} else {
 		fmt.Println()
 		fmt.Println("=====================================")
 		fmt.Printf("Hi, %s \n", user.Username)
-		fmt.Println("=====================================")
 
 		if user.Role == "admin" {
-			// TODO: Implement admin menu
+			AdminMenu(db, "")
 		} else {
 			// TODO: Implement user menu
 		}

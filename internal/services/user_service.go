@@ -17,6 +17,10 @@ func (service *UserService) GetAllUsers() ([]models.User, error) {
 	return service.userRepository.FindAll()
 }
 
+func (service *UserService) GetUserByID(id int) (models.User, error) {
+	return service.userRepository.FindByID(id)
+}
+
 func (service *UserService) GetUserByUsername(username string) (models.User, error) {
 	return service.userRepository.FindByUsername(username)
 }
@@ -29,6 +33,6 @@ func (service *UserService) UpdateUser(user models.User) error {
 	return service.userRepository.Update(user)
 }
 
-func (service *UserService) DeleteUser(username string) error {
-	return service.userRepository.Delete(username)
+func (service *UserService) DeleteUser(id int) error {
+	return service.userRepository.Delete(id)
 }

@@ -52,6 +52,46 @@ func TestGetAllUsers(t *testing.T) {
 	userRepository.AssertExpectations(t)
 }
 
+func TestGetUserByID(t *testing.T) {
+	t.Run("Success Get User By ID", func(t *testing.T) {
+		user := models.User{
+			UserID:    1,
+			Username:  "user1",
+			Email:     "user1@email.com",
+			Password:  "password",
+			Role:      "user",
+			CreatedAt: time.Now(),
+			Active:    true,
+		}
+
+		userRepository.On("FindByID", 1).Return(user, nil)
+
+		result, err := userService.GetUserByID(1)
+		if err != nil {
+			t.Errorf("Error was not expected: %s", err)
+		}
+
+		assert.NoError(t, err)
+		assert.Equal(t, user, result)
+
+		userRepository.AssertExpectations(t)
+	})
+
+	t.Run("Failed Get User By ID", func(t *testing.T) {
+		userRepository.On("FindByID", 2).Return(models.User{}, errors.New("user not found"))
+
+		result, err := userService.GetUserByID(2)
+		if err == nil {
+			t.Errorf("Error was expected")
+		}
+
+		assert.Error(t, err)
+		assert.Equal(t, models.User{}, result)
+
+		userRepository.AssertExpectations(t)
+	})
+}
+
 func TestGetUserByUsername(t *testing.T) {
 	t.Run("Success Get User By Username", func(t *testing.T) {
 		user := models.User{
@@ -290,9 +330,9 @@ func TestUpdateUser(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	t.Run("Success Delete User", func(t *testing.T) {
-		userRepository.On("Delete", "user1").Return(nil)
+		userRepository.On("Delete", 1).Return(nil)
 
-		err := userService.DeleteUser("user1")
+		err := userService.DeleteUser(1)
 		if err != nil {
 			t.Errorf("Error was not expected: %s", err)
 		}
@@ -303,9 +343,9 @@ func TestDeleteUser(t *testing.T) {
 	})
 
 	t.Run("Failed Delete User", func(t *testing.T) {
-		userRepository.On("Delete", "user2").Return(errors.New("failed to delete user"))
+		userRepository.On("Delete", 2).Return(errors.New("failed to delete user"))
 
-		err := userService.DeleteUser("user2")
+		err := userService.DeleteUser(2)
 		if err == nil {
 			t.Errorf("Error was expected")
 		}

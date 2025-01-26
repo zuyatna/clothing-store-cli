@@ -27,5 +27,5 @@ func main() {
 		}
 	}(db)
 
-	menu.DashboardMenu(db)
+	menu.DashboardMenu(db, "")
 }
