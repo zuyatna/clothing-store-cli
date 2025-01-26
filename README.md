@@ -1,7 +1,7 @@
 ## Note!
 I start to refactor this project to advanced learning.
 
-## ERD
+## Entity Relationship Diagram
 ![alt text](https://github.com/zuyatna/clothing-pair-project/blob/main/erd.png?raw=true)
 
 ## Project Structures

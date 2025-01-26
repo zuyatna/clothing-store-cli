@@ -25,9 +25,11 @@ func DashboardMenu(db *sqlx.DB) {
 		switch input {
 		case "1":
 			LoginMenu(db)
+			return
 		case "2":
 			// TODO: Implement register
 		case "0":
+			fmt.Println("Goodbye!")
 			return
 		default:
 			fmt.Println("Invalid input. Please try again.")

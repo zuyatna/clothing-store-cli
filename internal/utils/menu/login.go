@@ -1,6 +1,8 @@
 package menu
 
 import (
+	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -16,7 +18,6 @@ func LoginMenu(db *sqlx.DB) {
 		return
 	}
 
-	fmt.Print("Enter terminal: ")
 	passwordBytes, err := terminal.HidePassword()
 	if err != nil {
 		fmt.Println("Error reading terminal:", err)
@@ -24,8 +25,25 @@ func LoginMenu(db *sqlx.DB) {
 	}
 	password = string(passwordBytes)
 
-	// TODO: Use the terminal
+	userRepository := sql.NewUserRepository(db)
+	userService := services.NewUserService(userRepository)
 
-	fmt.Println(username, password)
-	fmt.Println()
+	user, err := userService.GetUserByUsername(username)
+	if err != nil || user.Password != password {
+		fmt.Println("Wrong username or password")
+		fmt.Println()
+
+		DashboardMenu(db)
+	} else {
+		fmt.Println()
+		fmt.Println("=====================================")
+		fmt.Printf("Hi, %s \n", user.Username)
+		fmt.Println("=====================================")
+
+		if user.Role == "admin" {
+			// TODO: Implement admin menu
+		} else {
+			// TODO: Implement user menu
+		}
+	}
 }
