@@ -17,6 +17,8 @@ I start to refactor this project to advanced learning.
     │   │   ├── user.go
     │   │   ├── product.go
     │   │   └── ..
+    │   ├── helper/
+    │   │   └── ..
     │   ├── models/
     │   │   ├── user.go
     │   │   ├── product.go
@@ -48,6 +50,7 @@ I start to refactor this project to advanced learning.
 - `/internal` Contains application core code that is not intended to be used by external packages.
     - `/config` Manage application configurations (e.g., databases, servers).
     - `/database` Contains interactions with the database.
+    - `/helper` Cross-cutting concerns and common utilities.
     - `/models` Defines data structures.
     - `/repository` Manage interactions with databases or other data sources.
     - `/services` Implementing business logic.
