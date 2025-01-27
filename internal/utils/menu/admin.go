@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -22,18 +23,14 @@ func AdminMenu(db *sqlx.DB, message string) {
 	fmt.Println("0. Logout")
 	fmt.Println("=====================================")
 
-	fmt.Println()
-	fmt.Println(message)
-	fmt.Println()
+	messages.PrintMessage(message)
 
 	var input string
 	fmt.Print("Choose option: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {
 		message = "No input entered"
-		fmt.Println(message)
-		fmt.Println()
-
+		messages.PrintMessage(message)
 		AdminMenu(db, message)
 	}
 
@@ -56,15 +53,11 @@ func AdminMenu(db *sqlx.DB, message string) {
 		// TODO: reports menu
 	case "0":
 		message = "Logging out..."
-		fmt.Println(message)
-		fmt.Println()
-
+		messages.PrintMessage(message)
 		DashboardMenu(db, message)
 	default:
 		message = "Invalid input"
-		fmt.Println(message)
-		fmt.Println()
-
+		messages.PrintMessage(message)
 		AdminMenu(db, message)
 	}
 }

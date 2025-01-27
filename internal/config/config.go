@@ -10,7 +10,7 @@ type DBConfig struct {
 	DatabaseURL string
 }
 
-func LoadConfig() (*DBConfig, error) {
+func LoadPath() (*DBConfig, error) {
 	viper.SetDefault("DATABASE_URL", "clothing_pair_project")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../../")

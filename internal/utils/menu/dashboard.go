@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 
@@ -37,8 +38,7 @@ func DashboardMenu(db *sqlx.DB, message string) {
 		return
 	default:
 		message = "Invalid input. Please try again."
-		fmt.Println(message)
-		fmt.Println()
+		messages.PrintMessage(message)
 		DashboardMenu(db, message)
 	}
 }
