@@ -27,7 +27,7 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	fmt.Println("1. Find All Users")
 	fmt.Println("2. Find User By Username")
 	fmt.Println("3. Add User")
-	fmt.Println("4. Update User")
+	fmt.Println("4. Edit User")
 	fmt.Println("5. Delete User")
 	fmt.Println("0. Back")
 	fmt.Println("=====================================")
@@ -54,7 +54,7 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	case "3":
 		addUserMenu(db, userService, "")
 	case "4":
-		updateUserMenu(db, userService, "")
+		editUserMenu(db, userService, "")
 	case "5":
 		deleteUserMenu(db, userService, "")
 	case "0":
@@ -105,22 +105,16 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message st
 
 	messages.PrintMessage(message)
 
-	var input string
-	fmt.Print("0. Back: ")
-	_, err := fmt.Scanln(&input)
+	fmt.Println()
+	fmt.Print("Press any key to back... ")
+	_, err := bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
-		message = "No input entered"
+		message = "Error reading input"
 		messages.PrintMessage(message)
-		findAllUsersMenu(db, userService, message)
+		ManageUserMenu(db, message)
 	}
 
-	if input == "0" {
-		ManageUserMenu(db, "")
-	} else {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		findAllUsersMenu(db, userService, message)
-	}
+	ManageUserMenu(db, "")
 }
 
 func findUserByUsername(db *sqlx.DB, userService *services.UserService, message string) {
@@ -180,6 +174,7 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, message 
 		messages.PrintMessage(message)
 		ManageUserMenu(db, message)
 	}
+
 	ManageUserMenu(db, "")
 }
 
@@ -343,9 +338,9 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 	ManageUserMenu(db, "Successfully added user with username "+username)
 }
 
-func updateUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func editUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
 	fmt.Println("=====================================")
-	fmt.Println("Update User")
+	fmt.Println("Edit User")
 	fmt.Println("=====================================")
 
 	allUsers(userService)
@@ -359,31 +354,31 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 	if err != nil {
 		message = "Error reading input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	if userID == "" {
 		message = "User ID cannot be empty"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	} else if strings.Contains(userID, " ") {
 		message = "User ID cannot contain spaces"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
 		message = "User ID must be a number"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	user, err := userService.GetUserByID(userIDInt)
 	if err != nil {
 		message = "User not found"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	fmt.Println("Current Username:", user.Username)
@@ -394,7 +389,7 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 	if err != nil {
 		message = "Error reading input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	if updateUsername == "y" {
@@ -404,24 +399,24 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 		if err != nil {
 			message = "Error reading input"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		if username == "" {
 			message = "Username cannot be empty"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		} else if strings.Contains(username, " ") {
 			message = "Username cannot contain spaces"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		user.Username = username
 	} else if updateUsername != "n" {
 		message = "Invalid input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	fmt.Println("Current Email:", user.Email)
@@ -432,7 +427,7 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 	if err != nil {
 		message = "Error reading input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	if updateEmail == "y" {
@@ -442,28 +437,28 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 		if err != nil {
 			message = "Error reading input"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		if email == "" {
 			message = "Email cannot be empty"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		} else if strings.Contains(email, " ") {
 			message = "Email cannot contain spaces"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		} else if !strings.Contains(email, "@") {
 			message = "Invalid email format"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		user.Email = email
 	} else if updateEmail != "n" {
 		message = "Invalid input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	fmt.Print("Do you want to update password? (y/n): ")
@@ -472,7 +467,7 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 	if err != nil {
 		message = "Error reading input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	if updatePassword == "y" {
@@ -480,41 +475,41 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 		if err != nil {
 			message = "Error reading password"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		if password == nil {
 			message = "Password cannot be empty"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		} else if len(password) < 8 {
 			message = "Password must be at least 8 characters"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		} else if strings.Contains(string(password), " ") {
 			message = "Password cannot contain spaces"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		confirmPassword, err := terminal.HidePassword("Confirm new password (min 8 characters):")
 		if err != nil {
 			message = "Error reading password"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		if string(password) != string(confirmPassword) {
 			message = "Password and confirm password do not match"
 			messages.PrintMessage(message)
-			updateUserMenu(db, userService, message)
+			editUserMenu(db, userService, message)
 		}
 
 		user.Password = string(password)
 	} else if updatePassword != "n" {
 		message = "Invalid input"
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	err = userService.UpdateUser(user)
@@ -527,7 +522,7 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 			message = "Error updating user"
 		}
 		messages.PrintMessage(message)
-		updateUserMenu(db, userService, message)
+		editUserMenu(db, userService, message)
 	}
 
 	ManageUserMenu(db, "Successfully updated user with ID "+strconv.Itoa(user.UserID))

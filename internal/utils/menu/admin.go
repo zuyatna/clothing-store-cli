@@ -11,14 +11,13 @@ func AdminMenu(db *sqlx.DB, message string) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Admin Menu")
-	fmt.Println("1. Manage User")
-	fmt.Println("2. Manage Product")
-	fmt.Println("3. Manage Collection")
-	fmt.Println("4. Manage Category")
-	fmt.Println("5. Manage Color")
-	fmt.Println("6. Manage Size")
-	fmt.Println("7. Manage Payment Method")
-	fmt.Println("8. Reports")
+	fmt.Println("1. Manage Users")
+	fmt.Println("2. Manage Products")
+	fmt.Println("3. Manage Categories")
+	fmt.Println("4. Manage Colors")
+	fmt.Println("5. Manage Sizes")
+	fmt.Println("6. Manage Payment Methods")
+	fmt.Println("7. Reports")
 	fmt.Println("0. Logout")
 	fmt.Println("=====================================")
 
@@ -39,16 +38,14 @@ func AdminMenu(db *sqlx.DB, message string) {
 	case "2":
 		ManageProductMenu(db, "")
 	case "3":
-		// TODO: manage collection menu
+		ManageCategoryMenu(db, "")
 	case "4":
-		// TODO: manage category menu
-	case "5":
 		// TODO: manage color menu
-	case "6":
+	case "5":
 		// TODO: manage size menu
-	case "7":
+	case "6":
 		// TODO: manage payment method menu
-	case "8":
+	case "7":
 		// TODO: reports menu
 	case "0":
 		message = "Logging out..."
