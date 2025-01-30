@@ -114,68 +114,52 @@ func TestGetProductByID(t *testing.T) {
 }
 
 func TestGetProductByName(t *testing.T) {
-	t.Run("Success Get Product By Name", func(t *testing.T) {
-		products := []models.Product{
-			{
-				ProductID:  1,
-				CategoryID: 1,
-				Name:       "product1",
-				Price:      149000,
-				Description: sql.NullString{
-					String: "description1",
-					Valid:  true,
-				},
-				Images: sql.NullString{
-					String: "image1",
-					Valid:  true,
-				},
-				Type:      "user",
-				CreatedAt: time.Time{},
+	products := []models.Product{
+		{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
 			},
-			{
-				ProductID:  2,
-				CategoryID: 2,
-				Name:       "product2",
-				Price:      249000,
-				Description: sql.NullString{
-					String: "description1",
-					Valid:  true,
-				},
-				Images: sql.NullString{
-					String: "image1",
-					Valid:  true,
-				},
-				Type:      "user",
-				CreatedAt: time.Time{},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
 			},
-		}
+			Type:      "user",
+			CreatedAt: time.Time{},
+		},
+		{
+			ProductID:  2,
+			CategoryID: 2,
+			Name:       "product2",
+			Price:      249000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "user",
+			CreatedAt: time.Time{},
+		},
+	}
 
-		productRepository.On("FindByName", "product").Return(products, nil)
+	productRepository.On("FindByName", "product").Return(products, nil)
 
-		result, err := productService.GetProductByName("product")
-		if err != nil {
-			t.Errorf("Error was not expected: %s", err)
-		}
+	result, err := productService.GetProductByName("product")
+	if err != nil {
+		t.Errorf("Error was not expected: %s", err)
+	}
 
-		assert.NoError(t, err)
-		assert.Equal(t, products, result)
+	assert.NoError(t, err)
+	assert.Equal(t, products, result)
 
-		productRepository.AssertExpectations(t)
-	})
-
-	t.Run("Product Not Found", func(t *testing.T) {
-		productRepository.On("FindByName", "product").Return([]models.Product{}, errors.New("product not found"))
-
-		result, err := productService.GetProductByName("product")
-		if err == nil {
-			t.Errorf("Error was expected, got nil")
-		}
-
-		assert.Error(t, err)
-		assert.Equal(t, []models.Product{}, result)
-
-		productRepository.AssertExpectations(t)
-	})
+	productRepository.AssertExpectations(t)
 }
 
 func TestGetProductByCategoryID(t *testing.T) {

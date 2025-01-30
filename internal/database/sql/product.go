@@ -59,7 +59,7 @@ func (repository *ProductRepository) FindByCategoryID(categoryID int) ([]models.
 }
 
 func (repository *ProductRepository) Add(product models.Product) error {
-	query := `INSERT INTO products (category_id, name, price, description, image, type, created_at) 
+	query := `INSERT INTO products (category_id, name, price, description, images, type, created_at) 
 			  VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`
 
 	_, err := repository.db.Exec(query, product.CategoryID, product.Name, product.Price, product.Description, product.Images, product.Type)
@@ -71,7 +71,7 @@ func (repository *ProductRepository) Add(product models.Product) error {
 }
 
 func (repository *ProductRepository) Update(product models.Product) error {
-	query := `UPDATE products SET category_id=$1, name=$2, price=$3, description=$4, image=$5, type=$6 
+	query := `UPDATE products SET category_id=$1, name=$2, price=$3, description=$4, images=$5, type=$6 
 			  WHERE product_id = $7`
 
 	_, err := repository.db.Exec(query, product.CategoryID, product.Name, product.Price, product.Description, product.Images, product.Type, product.ProductID)
