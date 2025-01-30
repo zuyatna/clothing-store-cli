@@ -68,9 +68,10 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	}
 }
 
-func allUser(userService *services.UserService) {
+func allUsers(userService *services.UserService) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
+	table.SetRowLine(true)
 
 	users, err := userService.GetAllUsers()
 	if err != nil {
@@ -104,7 +105,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message st
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	allUser(userService)
+	allUsers(userService)
 
 	messages.PrintMessage(message)
 
@@ -166,6 +167,7 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, message 
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
+	table.SetRowLine(true)
 	table.Append([]string{
 		strconv.Itoa(user.UserID),
 		user.Username,
@@ -356,7 +358,7 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 	fmt.Println("Update User")
 	fmt.Println("=====================================")
 
-	allUser(userService)
+	allUsers(userService)
 
 	messages.PrintMessage(message)
 
@@ -550,7 +552,7 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 
 	messages.PrintMessage(message)
 
-	allUser(userService)
+	allUsers(userService)
 
 	reader := bufio.NewReader(os.Stdin)
 
