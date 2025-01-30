@@ -11,8 +11,6 @@ import (
 )
 
 func LoginMenu(db *sqlx.DB) {
-	terminal.Clear()
-
 	var username, password string
 	fmt.Print("Enter username: ")
 	_, err := fmt.Scanln(&username)
@@ -34,6 +32,12 @@ func LoginMenu(db *sqlx.DB) {
 	user, err := userService.GetUserByUsername(username)
 	if err != nil || !helper.CheckPasswordHash(password, user.Password) {
 		errorMessage := "Wrong username or password"
+		fmt.Println(errorMessage)
+		fmt.Println()
+
+		DashboardMenu(db, errorMessage)
+	} else if user.Active == false {
+		errorMessage := "User is inactive, please contact admin"
 		fmt.Println(errorMessage)
 		fmt.Println()
 

@@ -2,15 +2,12 @@ package menu
 
 import (
 	"clothing-pair-project/internal/utils/messages"
-	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
 
 func DashboardMenu(db *sqlx.DB, message string) {
-	terminal.Clear()
-
 	fmt.Println("Welcome to the clothing store!")
 	fmt.Println("1. Login")
 	fmt.Println("2. Register")
