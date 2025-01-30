@@ -26,9 +26,9 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Manage User Menu")
-	fmt.Println("1. Add User")
-	fmt.Println("2. Find All Users")
-	fmt.Println("3. Find User By Username")
+	fmt.Println("1. Find All Users")
+	fmt.Println("2. Find User By Username")
+	fmt.Println("3. Add User")
 	fmt.Println("4. Update User")
 	fmt.Println("5. Delete User")
 	fmt.Println("0. Back")
@@ -50,11 +50,11 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 
 	switch input {
 	case "1":
-		addUserMenu(db, userService, "")
-	case "2":
 		findAllUsersMenu(db, userService, "")
-	case "3":
+	case "2":
 		findUserByUsername(db, userService, "")
+	case "3":
+		addUserMenu(db, userService, "")
 	case "4":
 		updateUserMenu(db, userService, "")
 	case "5":
@@ -95,6 +95,96 @@ func allUser(userService *services.UserService) {
 	}
 	table.Render()
 	fmt.Println()
+}
+
+func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message string) {
+	terminal.Clear()
+
+	fmt.Println("=====================================")
+	fmt.Println("Find All Users")
+	fmt.Println("=====================================")
+
+	allUser(userService)
+
+	messages.PrintMessage(message)
+
+	var input string
+	fmt.Print("0. Back: ")
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		findAllUsersMenu(db, userService, message)
+	}
+
+	if input == "0" {
+		ManageUserMenu(db, "")
+	} else {
+		message = "Invalid input"
+		messages.PrintMessage(message)
+		findAllUsersMenu(db, userService, message)
+	}
+}
+
+func findUserByUsername(db *sqlx.DB, userService *services.UserService, message string) {
+	terminal.Clear()
+
+	fmt.Println("=====================================")
+	fmt.Println("Find User By Username")
+	fmt.Println("=====================================")
+
+	reader := bufio.NewReader(os.Stdin)
+
+	messages.PrintMessage(message)
+
+	fmt.Print("Enter username: ")
+	username, err := reader.ReadString('\n')
+	username = strings.TrimSpace(username)
+	if err != nil {
+		message = "Error reading input"
+		messages.PrintMessage(message)
+		findUserByUsername(db, userService, message)
+	}
+
+	if username == "" {
+		message = "Username cannot be empty"
+		messages.PrintMessage(message)
+		findUserByUsername(db, userService, message)
+	} else if strings.Contains(username, " ") {
+		message = "Username cannot contain spaces"
+		messages.PrintMessage(message)
+		findUserByUsername(db, userService, message)
+	}
+	fmt.Println()
+
+	user, err := userService.GetUserByUsername(username)
+	if err != nil {
+		message = "User not found"
+		messages.PrintMessage(message)
+		findUserByUsername(db, userService, message)
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
+	table.Append([]string{
+		strconv.Itoa(user.UserID),
+		user.Username,
+		user.Email,
+		user.Role,
+		user.CreatedAt.Format("2006-01-02 15:04:05"),
+		strconv.FormatBool(user.Active),
+	})
+	table.Render()
+
+	fmt.Println()
+	fmt.Print("Press any key to back... ")
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if err != nil {
+		message = "Error reading input"
+		messages.PrintMessage(message)
+		ManageUserMenu(db, message)
+	}
+	ManageUserMenu(db, "")
 }
 
 func addUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
@@ -257,96 +347,6 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 	}
 
 	ManageUserMenu(db, "Successfully added user with username "+username)
-}
-
-func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
-	fmt.Println("=====================================")
-	fmt.Println("Find All Users")
-	fmt.Println("=====================================")
-
-	allUser(userService)
-
-	messages.PrintMessage(message)
-
-	var input string
-	fmt.Print("0. Back: ")
-	_, err := fmt.Scanln(&input)
-	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		findAllUsersMenu(db, userService, message)
-	}
-
-	if input == "0" {
-		ManageUserMenu(db, "")
-	} else {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		findAllUsersMenu(db, userService, message)
-	}
-}
-
-func findUserByUsername(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
-	fmt.Println("=====================================")
-	fmt.Println("Find User By Username")
-	fmt.Println("=====================================")
-
-	reader := bufio.NewReader(os.Stdin)
-
-	messages.PrintMessage(message)
-
-	fmt.Print("Enter username: ")
-	username, err := reader.ReadString('\n')
-	username = strings.TrimSpace(username)
-	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	}
-
-	if username == "" {
-		message = "Username cannot be empty"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	} else if strings.Contains(username, " ") {
-		message = "Username cannot contain spaces"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	}
-	fmt.Println()
-
-	user, err := userService.GetUserByUsername(username)
-	if err != nil {
-		message = "User not found"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
-	table.Append([]string{
-		strconv.Itoa(user.UserID),
-		user.Username,
-		user.Email,
-		user.Role,
-		user.CreatedAt.Format("2006-01-02 15:04:05"),
-		strconv.FormatBool(user.Active),
-	})
-	table.Render()
-
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
-	}
-	ManageUserMenu(db, "")
 }
 
 func updateUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
