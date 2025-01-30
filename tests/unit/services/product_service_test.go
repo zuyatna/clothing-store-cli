@@ -59,9 +59,12 @@ func TestGetAllProducts(t *testing.T) {
 		t.Errorf("Error was not expected: %s", err)
 	}
 
-	if len(result) != 2 {
-		t.Errorf("Expected 2 products, got %d", len(result))
+	if len(result) == 0 {
+		t.Error("Result is empty")
 	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, products, result)
 
 	productRepository.AssertExpectations(t)
 }
@@ -149,9 +152,9 @@ func TestGetProductByName(t *testing.T) {
 		},
 	}
 
-	productRepository.On("FindByName", "product").Return(products, nil)
+	productRepository.On("FindByName", "product1").Return(products, nil)
 
-	result, err := productService.GetProductByName("product")
+	result, err := productService.GetProductByName("product1")
 	if err != nil {
 		t.Errorf("Error was not expected: %s", err)
 	}
