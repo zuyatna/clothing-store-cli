@@ -11,8 +11,6 @@ import (
 )
 
 func LoginMenu(db *sqlx.DB) {
-	terminal.Clear()
-
 	var username, password string
 	fmt.Print("Enter username: ")
 	_, err := fmt.Scanln(&username)

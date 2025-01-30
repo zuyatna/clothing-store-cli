@@ -21,8 +21,6 @@ import (
 )
 
 func ManageUserMenu(db *sqlx.DB, message string) {
-	terminal.Clear()
-
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Manage User Menu")
@@ -99,8 +97,6 @@ func allUsers(userService *services.UserService) {
 }
 
 func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
@@ -128,8 +124,6 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message st
 }
 
 func findUserByUsername(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Find User By Username")
 	fmt.Println("=====================================")
@@ -190,13 +184,11 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, message 
 }
 
 func addUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
-	userRepository := sql.NewUserRepository(db)
-
 	fmt.Println("=====================================")
 	fmt.Println("Add User")
 	fmt.Println("=====================================")
+
+	userRepository := sql.NewUserRepository(db)
 
 	messages.PrintMessage(message)
 
@@ -352,8 +344,6 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 }
 
 func updateUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Update User")
 	fmt.Println("=====================================")
@@ -544,8 +534,6 @@ func updateUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 }
 
 func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Delete User")
 	fmt.Println("=====================================")

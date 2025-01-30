@@ -5,7 +5,6 @@ import (
 	"clothing-pair-project/internal/database/sql"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/messages"
-	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"os"
 
@@ -14,8 +13,6 @@ import (
 )
 
 func ManageProductMenu(db *sqlx.DB, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Manage Product Menu")
 	fmt.Println("1. Find All Products")
@@ -92,8 +89,6 @@ func allProducts(productService *services.ProductService) {
 }
 
 func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Find All Products")
 	fmt.Println("=====================================")
@@ -121,8 +116,6 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 }
 
 func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService, message string) {
-	terminal.Clear()
-
 	fmt.Println("=====================================")
 	fmt.Println("Find Product By Name")
 	fmt.Println("=====================================")

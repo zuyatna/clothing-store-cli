@@ -2,15 +2,13 @@ package menu
 
 import (
 	"clothing-pair-project/internal/utils/messages"
-	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
 
 func AdminMenu(db *sqlx.DB, message string) {
-	terminal.Clear()
-
+	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Admin Menu")
 	fmt.Println("1. Manage User")
