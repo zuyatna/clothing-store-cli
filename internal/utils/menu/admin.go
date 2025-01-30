@@ -4,6 +4,7 @@ import (
 	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -38,7 +39,7 @@ func AdminMenu(db *sqlx.DB, message string) {
 	case "1":
 		ManageUserMenu(db, "")
 	case "2":
-		// TODO: manage product menu
+		ManageProductMenu(db, "")
 	case "3":
 		// TODO: manage collection menu
 	case "4":

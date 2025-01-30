@@ -21,7 +21,7 @@ func (service *ProductService) GetProductByID(id int) (models.Product, error) {
 	return service.productRepository.FindByID(id)
 }
 
-func (service *ProductService) GetProductByName(name string) (models.Product, error) {
+func (service *ProductService) GetProductByName(name string) ([]models.Product, error) {
 	return service.productRepository.FindByName(name)
 }
 

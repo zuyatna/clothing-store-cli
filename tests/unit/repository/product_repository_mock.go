@@ -2,6 +2,7 @@ package repository
 
 import (
 	"clothing-pair-project/internal/models"
+
 	"github.com/stretchr/testify/mock"
 )
 
@@ -19,9 +20,9 @@ func (m *MockProductRepository) FindByID(id int) (models.Product, error) {
 	return args.Get(0).(models.Product), args.Error(1)
 }
 
-func (m *MockProductRepository) FindByName(name string) (models.Product, error) {
+func (m *MockProductRepository) FindByName(name string) ([]models.Product, error) {
 	args := m.Called(name)
-	return args.Get(0).(models.Product), args.Error(1)
+	return args.Get(0).([]models.Product), args.Error(1)
 }
 
 func (m *MockProductRepository) FindByCategoryID(categoryID int) ([]models.Product, error) {

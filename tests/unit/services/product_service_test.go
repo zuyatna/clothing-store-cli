@@ -4,6 +4,7 @@ import (
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/tests/unit/repository"
+	"database/sql"
 	"errors"
 	"testing"
 	"time"
@@ -18,24 +19,36 @@ var productService = services.NewProductService(&productRepository)
 func TestGetAllProducts(t *testing.T) {
 	products := []models.Product{
 		{
-			ProductID:   1,
-			CategoryID:  1,
-			Name:        "product1",
-			Price:       149000,
-			Description: "description1",
-			Image:       "image1",
-			Type:        "user",
-			CreatedAt:   time.Time{},
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "user",
+			CreatedAt: time.Time{},
 		},
 		{
-			ProductID:   2,
-			CategoryID:  2,
-			Name:        "product2",
-			Price:       249000,
-			Description: "description2",
-			Image:       "image2",
-			Type:        "user",
-			CreatedAt:   time.Time{},
+			ProductID:  2,
+			CategoryID: 2,
+			Name:       "product2",
+			Price:      249000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "user",
+			CreatedAt: time.Time{},
 		},
 	}
 
@@ -56,14 +69,20 @@ func TestGetAllProducts(t *testing.T) {
 func TestGetProductByID(t *testing.T) {
 	t.Run("Success Get Product By ID", func(t *testing.T) {
 		product := models.Product{
-			ProductID:   1,
-			CategoryID:  1,
-			Name:        "product1",
-			Price:       149000,
-			Description: "description1",
-			Image:       "image1",
-			Type:        "user",
-			CreatedAt:   time.Time{},
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "user",
+			CreatedAt: time.Time{},
 		}
 
 		productRepository.On("FindByID", 1).Return(product, nil)
@@ -96,40 +115,64 @@ func TestGetProductByID(t *testing.T) {
 
 func TestGetProductByName(t *testing.T) {
 	t.Run("Success Get Product By Name", func(t *testing.T) {
-		product := models.Product{
-			ProductID:   1,
-			CategoryID:  1,
-			Name:        "product1",
-			Price:       149000,
-			Description: "description1",
-			Image:       "image1",
-			Type:        "user",
-			CreatedAt:   time.Time{},
+		products := []models.Product{
+			{
+				ProductID:  1,
+				CategoryID: 1,
+				Name:       "product1",
+				Price:      149000,
+				Description: sql.NullString{
+					String: "description1",
+					Valid:  true,
+				},
+				Images: sql.NullString{
+					String: "image1",
+					Valid:  true,
+				},
+				Type:      "user",
+				CreatedAt: time.Time{},
+			},
+			{
+				ProductID:  2,
+				CategoryID: 2,
+				Name:       "product2",
+				Price:      249000,
+				Description: sql.NullString{
+					String: "description1",
+					Valid:  true,
+				},
+				Images: sql.NullString{
+					String: "image1",
+					Valid:  true,
+				},
+				Type:      "user",
+				CreatedAt: time.Time{},
+			},
 		}
 
-		productRepository.On("FindByName", "product1").Return(product, nil)
+		productRepository.On("FindByName", "product").Return(products, nil)
 
-		result, err := productService.GetProductByName("product1")
+		result, err := productService.GetProductByName("product")
 		if err != nil {
 			t.Errorf("Error was not expected: %s", err)
 		}
 
 		assert.NoError(t, err)
-		assert.Equal(t, product, result)
+		assert.Equal(t, products, result)
 
 		productRepository.AssertExpectations(t)
 	})
 
 	t.Run("Product Not Found", func(t *testing.T) {
-		productRepository.On("FindByName", "product2").Return(models.Product{}, errors.New("product not found"))
+		productRepository.On("FindByName", "product").Return([]models.Product{}, errors.New("product not found"))
 
-		result, err := productService.GetProductByName("product2")
+		result, err := productService.GetProductByName("product")
 		if err == nil {
 			t.Errorf("Error was expected, got nil")
 		}
 
 		assert.Error(t, err)
-		assert.Equal(t, models.Product{}, result)
+		assert.Equal(t, []models.Product{}, result)
 
 		productRepository.AssertExpectations(t)
 	})
@@ -139,24 +182,36 @@ func TestGetProductByCategoryID(t *testing.T) {
 	t.Run("Success Get Product By Category ID", func(t *testing.T) {
 		products := []models.Product{
 			{
-				ProductID:   1,
-				CategoryID:  1,
-				Name:        "product1",
-				Price:       149000,
-				Description: "description1",
-				Image:       "image1",
-				Type:        "user",
-				CreatedAt:   time.Time{},
+				ProductID:  1,
+				CategoryID: 1,
+				Name:       "product1",
+				Price:      149000,
+				Description: sql.NullString{
+					String: "description1",
+					Valid:  true,
+				},
+				Images: sql.NullString{
+					String: "image1",
+					Valid:  true,
+				},
+				Type:      "user",
+				CreatedAt: time.Time{},
 			},
 			{
-				ProductID:   2,
-				CategoryID:  1,
-				Name:        "product2",
-				Price:       249000,
-				Description: "description2",
-				Image:       "image2",
-				Type:        "user",
-				CreatedAt:   time.Time{},
+				ProductID:  2,
+				CategoryID: 1,
+				Name:       "product2",
+				Price:      249000,
+				Description: sql.NullString{
+					String: "description1",
+					Valid:  true,
+				},
+				Images: sql.NullString{
+					String: "image1",
+					Valid:  true,
+				},
+				Type:      "user",
+				CreatedAt: time.Time{},
 			},
 		}
 
@@ -190,14 +245,20 @@ func TestGetProductByCategoryID(t *testing.T) {
 
 func TestAddProduct(t *testing.T) {
 	product := models.Product{
-		ProductID:   1,
-		CategoryID:  1,
-		Name:        "product1",
-		Price:       149000,
-		Description: "description1",
-		Image:       "image1",
-		Type:        "user",
-		CreatedAt:   time.Time{},
+		ProductID:  1,
+		CategoryID: 1,
+		Name:       "product1",
+		Price:      149000,
+		Description: sql.NullString{
+			String: "description1",
+			Valid:  true,
+		},
+		Images: sql.NullString{
+			String: "image1",
+			Valid:  true,
+		},
+		Type:      "user",
+		CreatedAt: time.Time{},
 	}
 
 	productRepository.On("Add", product).Return(nil)
@@ -215,14 +276,20 @@ func TestAddProduct(t *testing.T) {
 
 func TestUpdateProduct(t *testing.T) {
 	product := models.Product{
-		ProductID:   1,
-		CategoryID:  1,
-		Name:        "product1",
-		Price:       149000,
-		Description: "description1",
-		Image:       "image1",
-		Type:        "user",
-		CreatedAt:   time.Time{},
+		ProductID:  1,
+		CategoryID: 1,
+		Name:       "product1",
+		Price:      149000,
+		Description: sql.NullString{
+			String: "description1",
+			Valid:  true,
+		},
+		Images: sql.NullString{
+			String: "image1",
+			Valid:  true,
+		},
+		Type:      "user",
+		CreatedAt: time.Time{},
 	}
 
 	productRepository.On("Update", product).Return(nil)
