@@ -25,8 +25,8 @@ func (service *ProductService) GetProductByName(name string) ([]models.Product, 
 	return service.productRepository.FindByName(name)
 }
 
-func (service *ProductService) GetProductByCategoryID(categoryID int) ([]models.Product, error) {
-	return service.productRepository.FindByCategoryID(categoryID)
+func (service *ProductService) GetProductByCategoryID(categoryID int, limit, offset int) ([]models.Product, error) {
+	return service.productRepository.FindByCategoryID(categoryID, limit, offset)
 }
 
 func (service *ProductService) AddProduct(product models.Product) error {

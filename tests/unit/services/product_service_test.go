@@ -197,7 +197,7 @@ func TestGetProductByCategoryID(t *testing.T) {
 
 		productRepository.On("FindByCategoryID", 1).Return(products, nil)
 
-		result, err := productService.GetProductByCategoryID(1)
+		result, err := productService.GetProductByCategoryID(1, 5, 0)
 		if err != nil {
 			t.Errorf("Error was not expected: %s", err)
 		}
@@ -211,7 +211,7 @@ func TestGetProductByCategoryID(t *testing.T) {
 	t.Run("Category Not Found", func(t *testing.T) {
 		productRepository.On("FindByCategoryID", 2).Return([]models.Product{}, errors.New("category not found"))
 
-		result, err := productService.GetProductByCategoryID(2)
+		result, err := productService.GetProductByCategoryID(2, 5, 0)
 		if err == nil {
 			t.Errorf("Error was expected, got nil")
 		}

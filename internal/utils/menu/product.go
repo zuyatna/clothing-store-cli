@@ -45,7 +45,7 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 	case "2":
 		findProductByNameMenu(db, productService, "")
 	case "3":
-		findProductByCategoryIDMenu(db, productService, "")
+		findProductByCategoryIDMenu(db, productService, "", 5, 0, false, 0)
 	case "4":
 		// Add Product
 	case "5":
@@ -61,23 +61,28 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 	}
 }
 
-func showProducts(productService *services.ProductService, next, prev int) {
+func showProducts(productService *services.ProductService, limit, offset int) (bool, bool) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
 	table.SetRowLine(true)
 
-	products, err := productService.GetAllProducts(next, prev)
+	products, err := productService.GetAllProducts(limit+1, offset)
 	if err != nil {
 		fmt.Printf("Error finding all products: %v\n", err)
-		return
+		return false, false
 	}
 
 	if len(products) == 0 {
 		fmt.Println("No products found")
-		return
+		return false, false
 	}
 
-	for _, product := range products {
+	displayProducts := products
+	if len(products) > limit {
+		displayProducts = products[:limit]
+	}
+
+	for _, product := range displayProducts {
 		table.Append([]string{
 			fmt.Sprintf("%d", product.ProductID),
 			product.Name,
@@ -89,53 +94,57 @@ func showProducts(productService *services.ProductService, next, prev int) {
 	}
 	table.Render()
 	fmt.Println()
+
+	hasNext := len(products) > limit
+	hasPrev := offset > 0
+
+	return hasNext, hasPrev
 }
 
-func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, lengthItem, starItem int) {
+func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, lengthItem, startItem int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Products")
 	fmt.Println("=====================================")
 
-	showProducts(productService, lengthItem, starItem)
+	hasNext, hasPrev := showProducts(productService, lengthItem, startItem)
 
 	messages.PrintMessage(message)
 
-	products, err := productService.GetAllProducts(lengthItem, starItem)
-	if err != nil {
-		fmt.Printf("Error finding all products: %v\n", err)
-		return
-	}
-
 	var input string
-	if len(products) >= 6 {
+	if hasPrev {
 		fmt.Println("Type A to Previous")
+	}
+	if hasNext {
 		fmt.Println("Type D to Next")
 	}
-
 	fmt.Println("Type 0 to Back")
 	fmt.Println("Type Other Number to Choose Product")
 	fmt.Print("Choose option: ")
-	_, err = fmt.Scanln(&input)
+	_, err := fmt.Scanln(&input)
 	if err != nil {
 		message = "No input entered"
 		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
+		ManageProductMenu(db, message)
 	}
 
 	switch input {
 	case "D", "d":
-		starItem += lengthItem
-		findAllProductsMenu(db, productService, "", lengthItem, starItem)
-	case "A", "a":
-		starItem -= lengthItem
-		if starItem < 0 {
-			starItem = 0
+		if hasNext {
+			startItem += lengthItem
 		}
-		findAllProductsMenu(db, productService, "", lengthItem, starItem)
+		findAllProductsMenu(db, productService, "", lengthItem, startItem)
+	case "A", "a":
+		if hasPrev {
+			startItem -= lengthItem
+			if startItem < 0 {
+				startItem = 0
+			}
+		}
+		findAllProductsMenu(db, productService, "", lengthItem, startItem)
 	case "0":
 		ManageProductMenu(db, "")
 	default:
-		findProductDetailByProductID(db, productService, message, lengthItem, starItem, input)
+		findProductDetailByProductID(db, productService, message, lengthItem, startItem, input)
 	}
 }
 
@@ -271,7 +280,7 @@ func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService,
 	ManageProductMenu(db, "")
 }
 
-func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductService, message string) {
+func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductService, message string, limit int, offset int, isActive bool, categoryID int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find Product By Category")
 	fmt.Println("=====================================")
@@ -282,24 +291,26 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	categoryService := services.NewCategoryService(categoryRepository)
 	allCategories(categoryService)
 
-	var input string
-	fmt.Print("Enter category ID: ")
-	_, err := fmt.Scanln(&input)
-	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		findProductByCategoryIDMenu(db, productService, message)
+	if !isActive {
+		var input string
+		fmt.Print("Enter category ID: ")
+		_, err := fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			findProductByCategoryIDMenu(db, productService, message, limit, offset, false, 0)
+		}
+
+		categoryID, err = strconv.Atoi(input)
+		if err != nil {
+			message = "Invalid category ID"
+			messages.PrintMessage(message)
+			findProductByCategoryIDMenu(db, productService, message, limit, offset, false, 0)
+			return
+		}
 	}
 
-	categoryID, err := strconv.Atoi(input)
-	if err != nil {
-		message = "Invalid category ID"
-		messages.PrintMessage(message)
-		findProductByCategoryIDMenu(db, productService, message)
-		return
-	}
-
-	products, err := productService.GetProductByCategoryID(categoryID)
+	products, err := productService.GetProductByCategoryID(categoryID, limit+1, offset)
 	if err != nil {
 		fmt.Printf("Error finding product by category ID: %v\n", err)
 		return
@@ -314,7 +325,12 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
 	table.SetRowLine(true)
 
-	for _, product := range products {
+	displayProduct := products
+	if len(products) > limit {
+		displayProduct = products[:limit]
+	}
+
+	for _, product := range displayProduct {
 		table.Append([]string{
 			fmt.Sprintf("%d", product.ProductID),
 			product.Name,
@@ -327,14 +343,43 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	table.Render()
 	fmt.Println()
 
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	hasNext := len(products) > limit
+	hasPrev := offset > 0
+
+	var option string
+	if hasPrev {
+		fmt.Println("Type A to Previous")
+	}
+	if hasNext {
+		fmt.Println("Type D to Next")
+	}
+	fmt.Println("Type 0 to Back")
+	fmt.Println("Type Other Number to Choose Product")
+	fmt.Print("Choose option: ")
+	_, err = fmt.Scanln(&option)
 	if err != nil {
-		message = "Error reading input"
+		message = "No input entered"
 		messages.PrintMessage(message)
 		ManageProductMenu(db, message)
 	}
 
-	ManageProductMenu(db, "")
+	switch option {
+	case "D", "d":
+		if hasNext {
+			offset += limit
+		}
+		findProductByCategoryIDMenu(db, productService, "", limit, offset, true, categoryID)
+	case "A", "a":
+		if hasPrev {
+			offset -= limit
+			if offset < 0 {
+				offset = 0
+			}
+		}
+		findProductByCategoryIDMenu(db, productService, "", limit, offset, true, categoryID)
+	case "0":
+		ManageProductMenu(db, "")
+	default:
+		findProductDetailByProductID(db, productService, message, limit, offset, option)
+	}
 }

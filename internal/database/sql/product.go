@@ -47,10 +47,10 @@ func (repository *ProductRepository) FindByName(name string) ([]models.Product, 
 	return products, nil
 }
 
-func (repository *ProductRepository) FindByCategoryID(categoryID int) ([]models.Product, error) {
+func (repository *ProductRepository) FindByCategoryID(categoryID int, limit, offset int) ([]models.Product, error) {
 	var products []models.Product
-	query := "SELECT * FROM products WHERE category_id = $1 ORDER BY product_id ASC"
-	err := repository.db.Select(&products, query, categoryID)
+	query := "SELECT * FROM products WHERE category_id = $1 ORDER BY product_id ASC LIMIT $2 OFFSET $3"
+	err := repository.db.Select(&products, query, categoryID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
