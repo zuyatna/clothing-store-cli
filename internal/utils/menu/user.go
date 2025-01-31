@@ -66,7 +66,7 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	}
 }
 
-func allUsers(userService *services.UserService) {
+func showUsers(userService *services.UserService) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
 	table.SetRowLine(true)
@@ -101,7 +101,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message st
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	allUsers(userService)
+	showUsers(userService)
 
 	messages.PrintMessage(message)
 
@@ -261,6 +261,13 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		addUserMenu(db, userService, message)
 	}
 
+	hashedPassword, err := helper.HashPassword(string(password))
+	if err != nil {
+		message = "Error hashing password"
+		messages.PrintMessage(message)
+		addUserMenu(db, userService, message)
+	}
+
 	enumRange, err := userRepository.EnumRole()
 	if err != nil {
 		message = "Error fetching enumRange"
@@ -294,6 +301,26 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		addUserMenu(db, userService, message)
 	}
 
+	user := models.User{
+		Username: username,
+		Email:    email,
+		Password: hashedPassword,
+		Role:     role,
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Username", "Email", "Password", "Role"})
+	table.SetRowLine(true)
+
+	table.Append([]string{
+		user.Username,
+		user.Email,
+		"********",
+		user.Role,
+	})
+	table.Render()
+	fmt.Println()
+
 	fmt.Print("Confirm Add User? (y/n): ")
 	confirm, err := reader.ReadString('\n')
 	confirm = strings.TrimSpace(confirm)
@@ -307,20 +334,6 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 		ManageUserMenu(db, "Add user cancelled, returning to Manage User Menu")
 	}
 	fmt.Println()
-
-	hashedPassword, err := helper.HashPassword(string(password))
-	if err != nil {
-		message = "Error hashing password"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	user := models.User{
-		Username: username,
-		Email:    email,
-		Password: hashedPassword,
-		Role:     role,
-	}
 
 	err = userService.AddUser(user)
 	if err != nil {
@@ -343,7 +356,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, message string
 	fmt.Println("Edit User")
 	fmt.Println("=====================================")
 
-	allUsers(userService)
+	showUsers(userService)
 
 	messages.PrintMessage(message)
 
@@ -471,7 +484,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, message string
 	}
 
 	if updatePassword == "y" {
-		password, err := terminal.HidePassword("Enter new password (min 8 characters): ")
+		password, err := terminal.HidePassword("Enter new password (min 6 characters): ")
 		if err != nil {
 			message = "Error reading password"
 			messages.PrintMessage(message)
@@ -482,8 +495,8 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, message string
 			message = "Password cannot be empty"
 			messages.PrintMessage(message)
 			editUserMenu(db, userService, message)
-		} else if len(password) < 8 {
-			message = "Password must be at least 8 characters"
+		} else if len(password) < 6 {
+			message = "Password must be at least 6 characters"
 			messages.PrintMessage(message)
 			editUserMenu(db, userService, message)
 		} else if strings.Contains(string(password), " ") {
@@ -492,7 +505,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, message string
 			editUserMenu(db, userService, message)
 		}
 
-		confirmPassword, err := terminal.HidePassword("Confirm new password (min 8 characters):")
+		confirmPassword, err := terminal.HidePassword("Confirm new password (min 6 characters):")
 		if err != nil {
 			message = "Error reading password"
 			messages.PrintMessage(message)
@@ -535,7 +548,7 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message stri
 
 	messages.PrintMessage(message)
 
-	allUsers(userService)
+	showUsers(userService)
 
 	reader := bufio.NewReader(os.Stdin)
 
