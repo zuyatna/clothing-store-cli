@@ -2,7 +2,7 @@ package menu
 
 import (
 	"bufio"
-	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
@@ -43,7 +43,7 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 		ManageUserMenu(db, message)
 	}
 
-	userRepository := sql.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 
 	switch input {
@@ -183,7 +183,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, message string)
 	fmt.Println("Add User")
 	fmt.Println("=====================================")
 
-	userRepository := sql.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserRepository(db)
 
 	messages.PrintMessage(message)
 

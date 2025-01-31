@@ -1,4 +1,4 @@
-package sql
+package sqlrepo
 
 import (
 	"clothing-pair-project/internal/models"

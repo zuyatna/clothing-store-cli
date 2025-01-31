@@ -14,8 +14,8 @@ I start to refactor this project to advanced learning.
     │   ├── config/
     │   │   └── config.go
     │   ├── database/
-    │   │   ├── user.go
-    │   │   ├── product.go
+    │   │   ├── postgres/
+    │   │   ├── sqlrepo/
     │   │   └── ..
     │   ├── helper/
     │   │   └── ..

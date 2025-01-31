@@ -2,12 +2,14 @@ package menu
 
 import (
 	"bufio"
-	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/messages"
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/olekukonko/tablewriter"
@@ -36,7 +38,7 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 		ManageUserMenu(db, message)
 	}
 
-	productRepository := sql.NewProductRepository(db)
+	productRepository := sqlrepo.NewProductRepository(db)
 	productService := services.NewProductService(productRepository)
 
 	switch input {
@@ -49,7 +51,7 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 	case "4":
 		// Add Product
 	case "5":
-		// edit Product
+		editProductMenu(db, productService, "", 5, 0)
 	case "6":
 		// Delete Product
 	case "0":
@@ -101,12 +103,12 @@ func showProducts(productService *services.ProductService, limit, offset int) (b
 	return hasNext, hasPrev
 }
 
-func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, lengthItem, startItem int) {
+func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, limit, offset int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Products")
 	fmt.Println("=====================================")
 
-	hasNext, hasPrev := showProducts(productService, lengthItem, startItem)
+	hasNext, hasPrev := showProducts(productService, limit, offset)
 
 	messages.PrintMessage(message)
 
@@ -130,21 +132,21 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 	switch input {
 	case "D", "d":
 		if hasNext {
-			startItem += lengthItem
+			offset += limit
 		}
-		findAllProductsMenu(db, productService, "", lengthItem, startItem)
+		findAllProductsMenu(db, productService, "", limit, offset)
 	case "A", "a":
 		if hasPrev {
-			startItem -= lengthItem
-			if startItem < 0 {
-				startItem = 0
+			offset -= limit
+			if offset < 0 {
+				offset = 0
 			}
 		}
-		findAllProductsMenu(db, productService, "", lengthItem, startItem)
+		findAllProductsMenu(db, productService, "", limit, offset)
 	case "0":
 		ManageProductMenu(db, "")
 	default:
-		findProductDetailByProductID(db, productService, message, lengthItem, startItem, input)
+		findProductDetailByProductID(db, productService, message, limit, offset, input)
 	}
 }
 
@@ -181,7 +183,7 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	})
 	table.Render()
 
-	productDetailRequestRepository := sql.NewProductDetailRequestRepository(db)
+	productDetailRequestRepository := sqlrepo.NewProductDetailRequestRepository(db)
 	productDetailRequestService := services.NewProductDetailRequestService(productDetailRequestRepository)
 
 	productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
@@ -287,7 +289,7 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 
 	messages.PrintMessage(message)
 
-	categoryRepository := sql.NewCategoryRepository(db)
+	categoryRepository := sqlrepo.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
 	allCategories(categoryService)
 
@@ -382,4 +384,385 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	default:
 		findProductDetailByProductID(db, productService, message, limit, offset, option)
 	}
+}
+
+func editProductMenu(db *sqlx.DB, productService *services.ProductService, message string, limit, offset int) {
+	fmt.Println("=====================================")
+	fmt.Println("Edit Product")
+	fmt.Println("=====================================")
+
+	messages.PrintMessage(message)
+
+	var input string
+	fmt.Print("Enter product ID: ")
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	productID, err := strconv.Atoi(input)
+	if err != nil {
+		message = "Invalid product ID"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	product, err := productService.GetProductByID(productID)
+	if err != nil {
+		message = "Error finding product by ID"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	fmt.Println()
+	fmt.Println("The Product")
+	fmt.Println()
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
+	table.SetRowLine(true)
+
+	table.Append([]string{
+		fmt.Sprintf("%d", product.ProductID),
+		product.Name,
+		fmt.Sprintf("%.2f", product.Price),
+		product.Description.String,
+		product.Images.String,
+		product.Type,
+	})
+	table.Render()
+	fmt.Println()
+
+	fmt.Print("Do you want to change the product? (y/n): ")
+	_, err = fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	if input == "y" {
+
+		categoryRepository := sqlrepo.NewCategoryRepository(db)
+		categoryService := services.NewCategoryService(categoryRepository)
+
+		categories, err := categoryService.GetCategoryByID(product.CategoryID)
+		if err != nil {
+			message = "Error finding category by ID"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Category: ", categories.Name)
+
+		fmt.Print("Do you want to change the category? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			allCategories(categoryService)
+			fmt.Print("Enter new category ID: ")
+			_, err = fmt.Scanln(&input)
+			if err != nil {
+				message = "No input entered"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			newCategoryID, err := strconv.Atoi(input)
+			if err != nil {
+				message = "Invalid category ID"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.CategoryID = newCategoryID
+		} else if input != "n" {
+			message = "Invalid input"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Product Name: ", product.Name)
+
+		fmt.Print("Do you want to change the product name? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			fmt.Print("Enter new product name: ")
+			updateProductName, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			updateProductName = strings.TrimSpace(updateProductName)
+			if err != nil {
+				message = "Error reading input"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			if updateProductName == "" {
+				message = "Product name cannot be empty"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.Name = updateProductName
+		} else if input != "n" {
+			message = "Invalid input"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Product Price: ", product.Price)
+
+		fmt.Print("Do you want to change the product price? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			fmt.Print("Enter new product price: ")
+			updateProductPrice, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			updateProductPrice = strings.TrimSpace(updateProductPrice)
+			if err != nil {
+				message = "Error reading input"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			if updateProductPrice == "" {
+				message = "Product price cannot be empty"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			updateProductPriceFloat, err := strconv.ParseFloat(updateProductPrice, 64)
+			if err != nil {
+				message = "Invalid price"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			if updateProductPriceFloat < 0 {
+				message = "Product price cannot be negative"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.Price = updateProductPriceFloat
+		} else if input != "n" {
+			message = "Invalid input"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Product Description: ", product.Description.String)
+
+		fmt.Print("Do you want to change the product description? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			fmt.Print("Enter new product description: ")
+			updateProductDescription, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			updateProductDescription = strings.TrimSpace(updateProductDescription)
+			if err != nil {
+				message = "Error reading input"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.Description = sql.NullString{
+				String: updateProductDescription,
+				Valid:  true,
+			}
+		} else if input != "n" {
+			message = "Invalid input"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Product Image: ", product.Images.String)
+
+		fmt.Print("Do you want to change the product image? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			fmt.Print("Enter new product image: ")
+			updateProductImage, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			updateProductImage = strings.TrimSpace(updateProductImage)
+			if err != nil {
+				message = "Error reading input"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.Images = sql.NullString{
+				String: updateProductImage,
+				Valid:  true,
+			}
+		} else if input != "n" {
+			message = "Invalid input"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		fmt.Println("Current Product Type: ", product.Type)
+
+		fmt.Print("Do you want to change the product type? (y/n): ")
+		_, err = fmt.Scanln(&input)
+		if err != nil {
+			message = "No input entered"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		if input == "y" {
+			// TODO: Implement change product type
+
+			fmt.Print("Enter new product type: ")
+			updateProductType, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			updateProductType = strings.TrimSpace(updateProductType)
+			if err != nil {
+				message = "Error reading input"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			if updateProductType == "" {
+				message = "Product type cannot be empty"
+				messages.PrintMessage(message)
+				editProductMenu(db, productService, message, limit, offset)
+			}
+
+			product.Type = updateProductType
+		}
+	} else if input != "n" {
+		message = "Invalid input"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	fmt.Println()
+	fmt.Println("Updated Product")
+	fmt.Println()
+
+	table = tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
+	table.SetRowLine(true)
+
+	table.Append([]string{
+		fmt.Sprintf("%d", product.ProductID),
+		product.Name,
+		fmt.Sprintf("%.2f", product.Price),
+		product.Description.String,
+		product.Images.String,
+		product.Type,
+	})
+	table.Render()
+	fmt.Println()
+
+	fmt.Print("Do you want to save the changes? (y/n): ")
+	_, err = fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	if input == "y" {
+		err = productService.UpdateProduct(product)
+		if err != nil {
+			message = "Error updating product"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+		}
+
+		message = "Product updated successfully"
+		messages.PrintMessage(message)
+	} else if input != "n" {
+		message = "Invalid input"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	fmt.Print("Do you want to edit the product detail? (y/n): ")
+	_, err = fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	if input == "y" {
+		// TODO: Implement edit product detail
+
+		productDetailRequestRepository := sqlrepo.NewProductDetailRequestRepository(db)
+		productDetailRequestService := services.NewProductDetailRequestService(productDetailRequestRepository)
+
+		productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
+		if err != nil {
+			message = "Error finding product detail by ID"
+			messages.PrintMessage(message)
+			editProductMenu(db, productService, message, limit, offset)
+			return
+		}
+
+		fmt.Println()
+		fmt.Println("Detail of Products")
+		fmt.Println()
+
+		tableDetail := tablewriter.NewWriter(os.Stdout)
+		tableDetail.SetHeader([]string{"No", "Color", "Size", "Stock"})
+		tableDetail.SetRowLine(true)
+
+		count := 0
+		for _, detail := range productDetails {
+			count++
+			tableDetail.Append([]string{
+				fmt.Sprintf("%d", count),
+				detail.Color,
+				detail.Size,
+				fmt.Sprintf("%d", detail.Stock),
+			})
+		}
+		tableDetail.Render()
+		fmt.Println()
+	} else if input != "n" {
+		message = "Invalid input"
+		messages.PrintMessage(message)
+		editProductMenu(db, productService, message, limit, offset)
+	}
+
+	fmt.Println()
+	fmt.Print("Press any key to back... ")
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if err != nil {
+		message = "Error reading input"
+		messages.PrintMessage(message)
+		ManageProductMenu(db, message)
+	}
+
+	ManageProductMenu(db, "")
 }
