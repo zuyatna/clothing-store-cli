@@ -10,8 +10,8 @@ type MockProductRepository struct {
 	mock.Mock
 }
 
-func (m *MockProductRepository) FindAll() ([]models.Product, error) {
-	args := m.Called()
+func (m *MockProductRepository) FindAll(limit, offset int) ([]models.Product, error) {
+	args := m.Called(limit, offset)
 	return args.Get(0).([]models.Product), args.Error(1)
 }
 
@@ -25,8 +25,8 @@ func (m *MockProductRepository) FindByName(name string) ([]models.Product, error
 	return args.Get(0).([]models.Product), args.Error(1)
 }
 
-func (m *MockProductRepository) FindByCategoryID(categoryID int) ([]models.Product, error) {
-	args := m.Called(categoryID)
+func (m *MockProductRepository) FindByCategoryID(categoryID int, limit, offset int) ([]models.Product, error) {
+	args := m.Called(categoryID, limit, offset)
 	return args.Get(0).([]models.Product), args.Error(1)
 }
 

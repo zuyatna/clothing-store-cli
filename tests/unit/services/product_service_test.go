@@ -31,12 +31,11 @@ func TestGetAllProducts(t *testing.T) {
 				String: "image1",
 				Valid:  true,
 			},
-			Type:      "user",
-			CreatedAt: time.Time{},
+			Type: "men",
 		},
 		{
 			ProductID:  2,
-			CategoryID: 2,
+			CategoryID: 1,
 			Name:       "product2",
 			Price:      249000,
 			Description: sql.NullString{
@@ -47,20 +46,15 @@ func TestGetAllProducts(t *testing.T) {
 				String: "image1",
 				Valid:  true,
 			},
-			Type:      "user",
-			CreatedAt: time.Time{},
+			Type: "women",
 		},
 	}
 
-	productRepository.On("FindAll").Return(products, nil)
+	productRepository.On("FindAll", 5, 0).Return(products, nil)
 
-	result, err := productService.GetAllProducts()
+	result, err := productService.GetAllProducts(5, 0)
 	if err != nil {
 		t.Errorf("Error was not expected: %s", err)
-	}
-
-	if len(result) == 0 {
-		t.Error("Result is empty")
 	}
 
 	assert.NoError(t, err)
@@ -84,7 +78,7 @@ func TestGetProductByID(t *testing.T) {
 				String: "image1",
 				Valid:  true,
 			},
-			Type:      "user",
+			Type:      "men",
 			CreatedAt: time.Time{},
 		}
 
@@ -117,52 +111,51 @@ func TestGetProductByID(t *testing.T) {
 }
 
 func TestGetProductByName(t *testing.T) {
-	products := []models.Product{
-		{
-			ProductID:  1,
-			CategoryID: 1,
-			Name:       "product1",
-			Price:      149000,
-			Description: sql.NullString{
-				String: "description1",
-				Valid:  true,
+	t.Run("Success Get Product By Name", func(t *testing.T) {
+		products := []models.Product{
+			{
+				ProductID:  1,
+				CategoryID: 1,
+				Name:       "product1",
+				Price:      149000,
+				Description: sql.NullString{
+					String: "description1",
+					Valid:  true,
+				},
+				Images: sql.NullString{
+					String: "image1",
+					Valid:  true,
+				},
+				Type: "men",
 			},
-			Images: sql.NullString{
-				String: "image1",
-				Valid:  true,
-			},
-			Type:      "user",
-			CreatedAt: time.Time{},
-		},
-		{
-			ProductID:  2,
-			CategoryID: 2,
-			Name:       "product2",
-			Price:      249000,
-			Description: sql.NullString{
-				String: "description1",
-				Valid:  true,
-			},
-			Images: sql.NullString{
-				String: "image1",
-				Valid:  true,
-			},
-			Type:      "user",
-			CreatedAt: time.Time{},
-		},
-	}
+		}
 
-	productRepository.On("FindByName", "product1").Return(products, nil)
+		productRepository.On("FindByName", "product1").Return(products, nil)
 
-	result, err := productService.GetProductByName("product1")
-	if err != nil {
-		t.Errorf("Error was not expected: %s", err)
-	}
+		result, err := productService.GetProductByName("product1")
+		if err != nil {
+			t.Errorf("Error was not expected: %s", err)
+		}
 
-	assert.NoError(t, err)
-	assert.Equal(t, products, result)
+		assert.NoError(t, err)
+		assert.Equal(t, products, result)
 
-	productRepository.AssertExpectations(t)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Product Not Found", func(t *testing.T) {
+		productRepository.On("FindByName", "product2").Return([]models.Product{}, errors.New("product not found"))
+
+		result, err := productService.GetProductByName("product2")
+		if err == nil {
+			t.Errorf("Error was expected, got nil")
+		}
+
+		assert.Error(t, err)
+		assert.Equal(t, []models.Product{}, result)
+
+		productRepository.AssertExpectations(t)
+	})
 }
 
 func TestGetProductByCategoryID(t *testing.T) {
@@ -181,7 +174,7 @@ func TestGetProductByCategoryID(t *testing.T) {
 					String: "image1",
 					Valid:  true,
 				},
-				Type:      "user",
+				Type:      "men",
 				CreatedAt: time.Time{},
 			},
 			{
@@ -197,14 +190,14 @@ func TestGetProductByCategoryID(t *testing.T) {
 					String: "image1",
 					Valid:  true,
 				},
-				Type:      "user",
+				Type:      "women",
 				CreatedAt: time.Time{},
 			},
 		}
 
-		productRepository.On("FindByCategoryID", 1).Return(products, nil)
+		productRepository.On("FindByCategoryID", 1, 5, 0).Return(products, nil)
 
-		result, err := productService.GetProductByCategoryID(1)
+		result, err := productService.GetProductByCategoryID(1, 5, 0)
 		if err != nil {
 			t.Errorf("Error was not expected: %s", err)
 		}
@@ -216,9 +209,9 @@ func TestGetProductByCategoryID(t *testing.T) {
 	})
 
 	t.Run("Category Not Found", func(t *testing.T) {
-		productRepository.On("FindByCategoryID", 2).Return([]models.Product{}, errors.New("category not found"))
+		productRepository.On("FindByCategoryID", 2, 5, 0).Return([]models.Product{}, errors.New("category not found"))
 
-		result, err := productService.GetProductByCategoryID(2)
+		result, err := productService.GetProductByCategoryID(2, 5, 0)
 		if err == nil {
 			t.Errorf("Error was expected, got nil")
 		}
@@ -231,77 +224,349 @@ func TestGetProductByCategoryID(t *testing.T) {
 }
 
 func TestAddProduct(t *testing.T) {
-	product := models.Product{
-		ProductID:  1,
-		CategoryID: 1,
-		Name:       "product1",
-		Price:      149000,
-		Description: sql.NullString{
-			String: "description1",
-			Valid:  true,
-		},
-		Images: sql.NullString{
-			String: "image1",
-			Valid:  true,
-		},
-		Type:      "user",
-		CreatedAt: time.Time{},
-	}
+	t.Run("Success Add Product", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
 
-	productRepository.On("Add", product).Return(nil)
+		productRepository.On("Add", product).Return(nil)
 
-	err := productService.AddProduct(product)
-	if err != nil {
-		t.Errorf("Error was not expected: %s", err)
-	}
+		err := productService.AddProduct(product)
+		assert.NoError(t, err)
+		productRepository.AssertExpectations(t)
+	})
 
-	assert.NoError(t, err)
-	assert.Equal(t, nil, err)
+	t.Run("Category Not Found", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 2,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
 
-	productRepository.AssertExpectations(t)
+		productRepository.On("Add", product).Return(errors.New("category not found"))
+
+		err := productService.AddProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Type", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Add", product).Return(errors.New("invalid type"))
+
+		err := productService.AddProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Price", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      -149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Add", product).Return(errors.New("invalid price"))
+
+		err := productService.AddProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Name", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Add", product).Return(errors.New("invalid name"))
+
+		err := productService.AddProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Failed to Add Product", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "",
+			Price:      0,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Add", product).Return(errors.New("failed to add product"))
+
+		err := productService.AddProduct(product)
+		if err == nil {
+			t.Errorf("Error was expected, got nil")
+		}
+
+		assert.Error(t, err)
+
+		productRepository.AssertExpectations(t)
+	})
 }
 
 func TestUpdateProduct(t *testing.T) {
-	product := models.Product{
-		ProductID:  1,
-		CategoryID: 1,
-		Name:       "product1",
-		Price:      149000,
-		Description: sql.NullString{
-			String: "description1",
-			Valid:  true,
-		},
-		Images: sql.NullString{
-			String: "image1",
-			Valid:  true,
-		},
-		Type:      "user",
-		CreatedAt: time.Time{},
-	}
+	t.Run("Success Update Product", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
 
-	productRepository.On("Update", product).Return(nil)
+		productRepository.On("Update", product).Return(nil)
 
-	err := productService.UpdateProduct(product)
-	if err != nil {
-		t.Errorf("Error was not expected: %s", err)
-	}
+		err := productService.UpdateProduct(product)
+		if err != nil {
+			t.Errorf("Error was not expected: %s", err)
+		}
 
-	assert.NoError(t, err)
-	assert.Equal(t, nil, err)
+		assert.NoError(t, err)
+		assert.Equal(t, nil, err)
 
-	productRepository.AssertExpectations(t)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Category Not Found", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 2,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Update", product).Return(errors.New("category not found"))
+
+		err := productService.UpdateProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Type", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Update", product).Return(errors.New("invalid type"))
+
+		err := productService.UpdateProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Price", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "product1",
+			Price:      -149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Update", product).Return(errors.New("invalid price"))
+
+		err := productService.UpdateProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Name", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "",
+			Price:      149000,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "men",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Update", product).Return(errors.New("invalid name"))
+
+		err := productService.UpdateProduct(product)
+		assert.Error(t, err)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Failed to Update Product", func(t *testing.T) {
+		product := models.Product{
+			ProductID:  1,
+			CategoryID: 1,
+			Name:       "",
+			Price:      0,
+			Description: sql.NullString{
+				String: "description1",
+				Valid:  true,
+			},
+			Images: sql.NullString{
+				String: "image1",
+				Valid:  true,
+			},
+			Type:      "",
+			CreatedAt: time.Time{},
+		}
+
+		productRepository.On("Update", product).Return(errors.New("failed to update product"))
+
+		err := productService.UpdateProduct(product)
+		if err == nil {
+			t.Errorf("Error was expected, got nil")
+		}
+
+		assert.Error(t, err)
+
+		productRepository.AssertExpectations(t)
+	})
 }
 
 func TestDeleteProduct(t *testing.T) {
-	productRepository.On("Delete", 1).Return(nil)
+	t.Run("Success Delete Product", func(t *testing.T) {
+		productRepository.On("Delete", 1).Return(nil)
 
-	err := productService.DeleteProduct(1)
-	if err != nil {
-		t.Errorf("Error was not expected: %s", err)
-	}
+		err := productService.DeleteProduct(1)
+		if err != nil {
+			t.Errorf("Error was not expected: %s", err)
+		}
 
-	assert.NoError(t, err)
-	assert.Equal(t, nil, err)
+		assert.NoError(t, err)
 
-	productRepository.AssertExpectations(t)
+		productRepository.AssertExpectations(t)
+	})
+
+	t.Run("Product Not Found", func(t *testing.T) {
+		productRepository.On("Delete", 2).Return(errors.New("product not found"))
+
+		err := productService.DeleteProduct(2)
+		if err == nil {
+			t.Errorf("Error was expected, got nil")
+		}
+
+		assert.Error(t, err)
+
+		productRepository.AssertExpectations(t)
+	})
 }
