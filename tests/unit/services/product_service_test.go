@@ -195,7 +195,7 @@ func TestGetProductByCategoryID(t *testing.T) {
 			},
 		}
 
-		productRepository.On("FindByCategoryID", 1).Return(products, nil)
+		productRepository.On("FindByCategoryID", 1, 5, 0).Return(products, nil)
 
 		result, err := productService.GetProductByCategoryID(1, 5, 0)
 		if err != nil {
@@ -209,7 +209,7 @@ func TestGetProductByCategoryID(t *testing.T) {
 	})
 
 	t.Run("Category Not Found", func(t *testing.T) {
-		productRepository.On("FindByCategoryID", 2).Return([]models.Product{}, errors.New("category not found"))
+		productRepository.On("FindByCategoryID", 2, 5, 0).Return([]models.Product{}, errors.New("category not found"))
 
 		result, err := productService.GetProductByCategoryID(2, 5, 0)
 		if err == nil {
