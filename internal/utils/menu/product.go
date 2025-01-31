@@ -41,7 +41,7 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 
 	switch input {
 	case "1":
-		findAllProductsMenu(db, productService, "")
+		findAllProductsMenu(db, productService, "", 5, 0)
 	case "2":
 		findProductByNameMenu(db, productService, "")
 	case "3":
@@ -61,12 +61,12 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 	}
 }
 
-func allProducts(productService *services.ProductService) {
+func showProducts(productService *services.ProductService, next, prev int) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
 	table.SetRowLine(true)
 
-	products, err := productService.GetAllProducts()
+	products, err := productService.GetAllProducts(next, prev)
 	if err != nil {
 		fmt.Printf("Error finding all products: %v\n", err)
 		return
@@ -91,25 +91,128 @@ func allProducts(productService *services.ProductService) {
 	fmt.Println()
 }
 
-func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string) {
+func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, lengthItem, starItem int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Products")
 	fmt.Println("=====================================")
 
-	allProducts(productService)
+	showProducts(productService, lengthItem, starItem)
 
 	messages.PrintMessage(message)
 
+	products, err := productService.GetAllProducts(lengthItem, starItem)
+	if err != nil {
+		fmt.Printf("Error finding all products: %v\n", err)
+		return
+	}
+
+	var input string
+	if len(products) >= 6 {
+		fmt.Println("Type A to Previous")
+		fmt.Println("Type D to Next")
+	}
+
+	fmt.Println("Type 0 to Back")
+	fmt.Println("Type Other Number to Choose Product")
+	fmt.Print("Choose option: ")
+	_, err = fmt.Scanln(&input)
+	if err != nil {
+		message = "No input entered"
+		messages.PrintMessage(message)
+		ManageUserMenu(db, message)
+	}
+
+	switch input {
+	case "D", "d":
+		starItem += lengthItem
+		findAllProductsMenu(db, productService, "", lengthItem, starItem)
+	case "A", "a":
+		starItem -= lengthItem
+		if starItem < 0 {
+			starItem = 0
+		}
+		findAllProductsMenu(db, productService, "", lengthItem, starItem)
+	case "0":
+		ManageProductMenu(db, "")
+	default:
+		findProductDetailByProductID(db, productService, message, lengthItem, starItem, input)
+	}
+}
+
+func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductService, message string, lengthItem int, starItem int, input string) {
+	productID, err := strconv.Atoi(input)
+	if err != nil {
+		message = "Invalid product ID"
+		messages.PrintMessage(message)
+		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+	}
+
+	product, err := productService.GetProductByID(productID)
+	if err != nil {
+		message = "Error finding product by ID"
+		messages.PrintMessage(message)
+		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+	}
+
+	fmt.Println()
+	fmt.Println("The Product")
+	fmt.Println()
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
+	table.SetRowLine(true)
+
+	table.Append([]string{
+		fmt.Sprintf("%d", product.ProductID),
+		product.Name,
+		fmt.Sprintf("%.2f", product.Price),
+		product.Description.String,
+		product.Images.String,
+		product.Type,
+	})
+	table.Render()
+
+	productDetailRequestRepository := sql.NewProductDetailRequestRepository(db)
+	productDetailRequestService := services.NewProductDetailRequestService(productDetailRequestRepository)
+
+	productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
+	if err != nil {
+		message = "Error finding product detail by ID"
+		messages.PrintMessage(message)
+		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+		return
+	}
+
+	fmt.Println()
+	fmt.Println("Detail of Products")
+	fmt.Println()
+
+	tableDetail := tablewriter.NewWriter(os.Stdout)
+	tableDetail.SetHeader([]string{"No", "Color", "Size", "Stock"})
+	tableDetail.SetRowLine(true)
+
+	count := 0
+	for _, detail := range productDetails {
+		count++
+		tableDetail.Append([]string{
+			fmt.Sprintf("%d", count),
+			detail.Color,
+			detail.Size,
+			fmt.Sprintf("%d", detail.Stock),
+		})
+	}
+	tableDetail.Render()
+
 	fmt.Println()
 	fmt.Print("Press any key to back... ")
-	_, err := bufio.NewReader(os.Stdin).ReadBytes('\n')
+	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
 		message = "Error reading input"
 		messages.PrintMessage(message)
 		ManageProductMenu(db, message)
 	}
 
-	ManageProductMenu(db, "")
+	findAllProductsMenu(db, productService, "", lengthItem, starItem)
 }
 
 func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService, message string) {

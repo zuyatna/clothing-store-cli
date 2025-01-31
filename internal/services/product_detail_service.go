@@ -9,8 +9,16 @@ type ProductDetailService struct {
 	ProductDetailService repository.ProductDetailRepository
 }
 
+type ProductDetailRequestService struct {
+	ProductDetailRequestRepository repository.ProductDetailRequestRepository
+}
+
 func NewProductDetailService(productDetailRepository repository.ProductDetailRepository) *ProductDetailService {
 	return &ProductDetailService{ProductDetailService: productDetailRepository}
+}
+
+func NewProductDetailRequestService(productDetailRequestRepository repository.ProductDetailRequestRepository) *ProductDetailRequestService {
+	return &ProductDetailRequestService{ProductDetailRequestRepository: productDetailRequestRepository}
 }
 
 func (service *ProductDetailService) GetAllProductDetails() ([]models.ProductDetail, error) {
@@ -31,4 +39,8 @@ func (service *ProductDetailService) UpdateProductDetail(productDetail models.Pr
 
 func (service *ProductDetailService) DeleteProductDetail(id int) error {
 	return service.ProductDetailService.Delete(id)
+}
+
+func (service *ProductDetailRequestService) GetProductDetailByProductID(productID int) ([]models.ProductDetailRequest, error) {
+	return service.ProductDetailRequestRepository.FindProductDetailByID(productID)
 }

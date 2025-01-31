@@ -14,10 +14,10 @@ func NewProductRepository(db *sqlx.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repository *ProductRepository) FindAll() ([]models.Product, error) {
+func (repository *ProductRepository) FindAll(limit, offset int) ([]models.Product, error) {
 	var products []models.Product
-	query := "SELECT * FROM products ORDER BY product_id ASC"
-	err := repository.db.Select(&products, query)
+	query := "SELECT * FROM products ORDER BY product_id ASC LIMIT $1 OFFSET $2"
+	err := repository.db.Select(&products, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}

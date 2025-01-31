@@ -50,9 +50,9 @@ func TestGetAllProducts(t *testing.T) {
 		},
 	}
 
-	productRepository.On("FindAll").Return(products, nil)
+	productRepository.On("FindAll", 5, 0).Return(products, nil)
 
-	result, err := productService.GetAllProducts()
+	result, err := productService.GetAllProducts(5, 0)
 	if err != nil {
 		t.Errorf("Error was not expected: %s", err)
 	}

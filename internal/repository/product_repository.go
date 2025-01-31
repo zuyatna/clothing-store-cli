@@ -3,7 +3,7 @@ package repository
 import "clothing-pair-project/internal/models"
 
 type ProductRepository interface {
-	FindAll() ([]models.Product, error)
+	FindAll(limit, offset int) ([]models.Product, error)
 	FindByID(id int) (models.Product, error)
 	FindByName(name string) ([]models.Product, error)
 	FindByCategoryID(categoryID int) ([]models.Product, error)

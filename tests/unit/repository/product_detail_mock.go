@@ -19,6 +19,11 @@ func (m *MockProductDetailRepository) FindByID(id int) (models.ProductDetail, er
 	return args.Get(0).(models.ProductDetail), args.Error(1)
 }
 
+func (m *MockProductDetailRepository) FindByProductID(productID int) ([]models.ProductDetail, error) {
+	args := m.Called(productID)
+	return args.Get(0).([]models.ProductDetail), args.Error(1)
+}
+
 func (m *MockProductDetailRepository) Add(productDetail models.ProductDetail) error {
 	args := m.Called(productDetail)
 	return args.Error(0)

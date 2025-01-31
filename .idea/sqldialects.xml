@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/internal/database/sql/category.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/internal/database/sql/product.go" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/internal/database/sql/product_detail.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/internal/database/sql/user.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/internal/utils/menu/user.go" dialect="GenericSQL" />
   </component>
