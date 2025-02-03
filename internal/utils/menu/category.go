@@ -2,7 +2,7 @@ package menu
 
 import (
 	"bufio"
-	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/messages"
@@ -37,7 +37,7 @@ func ManageCategoryMenu(db *sqlx.DB, message string) {
 		ManageCategoryMenu(db, message)
 	}
 
-	categoryRepository := sql.NewCategoryRepository(db)
+	categoryRepository := sqlrepo.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
 
 	switch input {

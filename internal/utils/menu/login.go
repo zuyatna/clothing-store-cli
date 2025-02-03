@@ -1,7 +1,7 @@
 package menu
 
 import (
-	"clothing-pair-project/internal/database/sql"
+	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/terminal"
@@ -26,7 +26,7 @@ func LoginMenu(db *sqlx.DB) {
 	}
 	password = string(passwordBytes)
 
-	userRepository := sql.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserRepository(db)
 	userService := services.NewUserService(userRepository)
 
 	user, err := userService.GetUserByUsername(username)

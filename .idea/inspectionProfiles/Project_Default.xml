@@ -7,6 +7,7 @@
         <method importPath="github.com/jmoiron/sqlx" receiver="*DB" name="Query" />
         <method importPath="clothing-pair-project/internal/services" receiver="*UserService" name="GetUserByID" />
         <method importPath="clothing-pair-project/internal/services" receiver="*ProductService" name="GetProductByID" />
+        <method importPath="clothing-pair-project/internal/services" receiver="*CategoryService" name="GetCategoryByID" />
       </methods>
     </inspection_tool>
   </profile>
