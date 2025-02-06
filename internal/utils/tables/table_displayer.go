@@ -12,13 +12,19 @@ type TableUserDisplayer struct {
 	writer *tablewriter.Table
 }
 
-func NewTableAllUsersDisplayer(writer *tablewriter.Table) *TableUserDisplayer {
+func NewTableUsersDisplayer(writer *tablewriter.Table) *TableUserDisplayer {
 	writer.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
 	writer.SetRowLine(true)
 	return &TableUserDisplayer{writer: writer}
 }
 
-func (t *TableUserDisplayer) DisplayAllUser(users []models.User) {
+func NewTableAddUserDisplayer(writer *tablewriter.Table) *TableUserDisplayer {
+	writer.SetHeader([]string{"Username", "Email", "Password", "Role"})
+	writer.SetRowLine(true)
+	return &TableUserDisplayer{writer: writer}
+}
+
+func (t *TableUserDisplayer) DisplayUsers(users []models.User) {
 	t.writer.ClearRows()
 	for _, user := range users {
 		t.writer.Append([]string{
@@ -30,5 +36,16 @@ func (t *TableUserDisplayer) DisplayAllUser(users []models.User) {
 			strconv.FormatBool(user.Active),
 		})
 	}
+	t.writer.Render()
+}
+
+func (t *TableUserDisplayer) DisplayAddUser(user models.User) {
+	t.writer.ClearRows()
+	t.writer.Append([]string{
+		user.Username,
+		user.Email,
+		user.Password,
+		user.Role,
+	})
 	t.writer.Render()
 }

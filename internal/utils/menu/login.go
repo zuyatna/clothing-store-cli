@@ -31,17 +31,13 @@ func LoginMenu(db *sqlx.DB) {
 
 	user, err := userService.GetUserByUsername(username)
 	if err != nil || !helper.CheckPasswordHash(password, user.Password) {
-		errorMessage := "Wrong username or password"
-		fmt.Println(errorMessage)
-		fmt.Println()
-
-		DashboardMenu(db, errorMessage)
+		errMsg := "Wrong username or password"
+		fmt.Println(errMsg)
+		DashboardMenu(db, errMsg)
 	} else if !user.Active {
-		errorMessage := "User is inactive, please contact admin"
-		fmt.Println(errorMessage)
-		fmt.Println()
-
-		DashboardMenu(db, errorMessage)
+		errMsg := "User is inactive, please contact admin"
+		fmt.Println(errMsg)
+		DashboardMenu(db, errMsg)
 	} else {
 		fmt.Println()
 		fmt.Println("=====================================")
