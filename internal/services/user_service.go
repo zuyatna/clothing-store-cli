@@ -13,8 +13,8 @@ func NewUserService(userRepository repository.UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
 
-func (service *UserService) GetAllUsers() ([]models.User, error) {
-	return service.userRepository.FindAll()
+func (service *UserService) GetAllUsers(limit, offset int) ([]models.User, error) {
+	return service.userRepository.FindAll(limit, offset)
 }
 
 func (service *UserService) GetUserByID(id int) (models.User, error) {

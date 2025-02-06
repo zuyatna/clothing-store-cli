@@ -46,7 +46,7 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 
 	switch input {
 	case "1":
-		findAllUsersMenu(db, userService)
+		findAllUsersMenu(db, userService, "", 5, 0)
 	case "2":
 		findUserByUsername(db, userService, "")
 	case "3":
@@ -63,26 +63,63 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 	}
 }
 
-func showUsers(userService *services.UserService) {
+func showUsers(userService *services.UserService, limit, offset int) (bool, bool) {
 	writer := tablewriter.NewWriter(os.Stdout)
 	displayer := tables.NewTableUsersDisplayer(writer)
 	handler := handler.NewUserHandler(userService, displayer)
-	if err := handler.ShowAllUsers(); err != nil {
-		fmt.Printf("Error fetching all users: %v\n", err)
-	} else {
-		writer.Render()
+	hasNext, hasPrev, err := handler.ShowAllUsers(limit, offset)
+	if err != nil {
+		fmt.Println("Error fetching users:", err)
 	}
+
+	return hasNext, hasPrev
 }
 
-func findAllUsersMenu(db *sqlx.DB, userService *services.UserService) {
+func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string, limit, offset int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	showUsers(userService)
+	messages.PrintMessage(msg)
 
-	input.BackMenu()
-	ManageUserMenu(db, "")
+	hasNext, hasPrev := showUsers(userService, limit, offset)
+
+	fmt.Println()
+	var input string
+	if hasPrev {
+		fmt.Println("Type A to Previous")
+	}
+	if hasNext {
+		fmt.Println("Type D to Next")
+	}
+	fmt.Println("Type 0 to Back")
+	fmt.Print("Choose option: ")
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		msg = "No input entered"
+		ManageUserMenu(db, msg)
+	}
+
+	switch input {
+	case "D", "d":
+		if hasNext {
+			offset += limit
+		}
+		findAllUsersMenu(db, userService, "", limit, offset)
+	case "A", "a":
+		if hasPrev {
+			offset -= limit
+			if offset < 0 {
+				offset = 0
+			}
+		}
+		findAllUsersMenu(db, userService, "", limit, offset)
+	case "0":
+		ManageUserMenu(db, "")
+	default:
+		msg = "Invalid input"
+		findAllUsersMenu(db, userService, msg, limit, offset)
+	}
 }
 
 func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg string) {
@@ -185,8 +222,6 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("Edit User")
 	fmt.Println("=====================================")
 
-	showUsers(userService)
-
 	messages.PrintMessage(msg)
 
 	userID, err := input.UserID()
@@ -259,8 +294,6 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) 
 	fmt.Println("=====================================")
 
 	messages.PrintMessage(msg)
-
-	showUsers(userService)
 
 	userID, err := input.UserID()
 	if err != nil {

@@ -3,7 +3,7 @@ package repository
 import "clothing-pair-project/internal/models"
 
 type UserRepository interface {
-	FindAll() ([]models.User, error)
+	FindAll(limit, offset int) ([]models.User, error)
 	FindByID(id int) (models.User, error)
 	FindByUsername(username string) (models.User, error)
 	Add(user models.User) error

@@ -9,6 +9,6 @@ type UserDisplay interface {
 }
 
 type UserFetcher interface {
-	GetAllUsers() ([]models.User, error)
+	GetAllUsers(limit, offset int) ([]models.User, error)
 	GetUserByUsername(username string) (models.User, error)
 }

@@ -11,8 +11,8 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) FindAll() ([]models.User, error) {
-	args := m.Called()
+func (m *MockUserRepository) FindAll(limit, offset int) ([]models.User, error) {
+	args := m.Called(limit, offset)
 	return args.Get(0).([]models.User), args.Error(1)
 }
 

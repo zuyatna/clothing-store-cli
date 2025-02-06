@@ -18,14 +18,27 @@ func NewUserHandler(service interfaces.UserFetcher, display interfaces.UserDispl
 	}
 }
 
-func (h *UserHandler) ShowAllUsers() error {
-	users, err := h.userService.GetAllUsers()
+func (h *UserHandler) ShowAllUsers(limit, offset int) (bool, bool, error) {
+	users, err := h.userService.GetAllUsers(limit+1, offset)
 	if err != nil {
-		return fmt.Errorf("error fetching all users: %w", err)
+		return false, false, fmt.Errorf("error fetching all users: %w", err)
 	}
 
-	h.userDisplay.DisplayUsers(users)
-	return nil
+	if len(users) == 0 {
+		return false, false, fmt.Errorf("no users found")
+	}
+
+	displayUsers := users
+	if len(users) > limit {
+		displayUsers = users[:limit]
+	}
+
+	h.userDisplay.DisplayUsers(displayUsers)
+
+	hasNext := len(users) > limit
+	hasPrev := offset > 0
+
+	return hasNext, hasPrev, nil
 }
 
 func (h *UserHandler) ShowUserByUsername(username string) error {

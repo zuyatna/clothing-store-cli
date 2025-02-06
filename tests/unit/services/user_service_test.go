@@ -5,10 +5,11 @@ import (
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/tests/unit/repository"
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var userRepository = repository.MockUserRepository{Mock: mock.Mock{}}
@@ -36,9 +37,9 @@ func TestGetAllUsers(t *testing.T) {
 		},
 	}
 
-	userRepository.On("FindAll").Return(users, nil)
+	userRepository.On("FindAll", 5, 0).Return(users, nil)
 
-	result, err := userService.GetAllUsers()
+	result, err := userService.GetAllUsers(5, 0)
 	if err != nil {
 		t.Errorf("Error was not expected: %s", err)
 	}

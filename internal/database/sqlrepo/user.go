@@ -15,10 +15,10 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (repository *UserRepository) FindAll() ([]models.User, error) {
+func (repository *UserRepository) FindAll(limit, offset int) ([]models.User, error) {
 	var users []models.User
-	query := "SELECT * FROM users ORDER BY user_id ASC"
-	err := repository.db.Select(&users, query)
+	query := "SELECT * FROM users ORDER BY user_id ASC LIMIT $1 OFFSET $2"
+	err := repository.db.Select(&users, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
