@@ -6,7 +6,9 @@ import (
 	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
+	"clothing-pair-project/internal/utils/handler"
 	"clothing-pair-project/internal/utils/messages"
+	"clothing-pair-project/internal/utils/tables"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"os"
@@ -101,7 +103,12 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message st
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	showUsers(userService)
+	writer := tablewriter.NewWriter(os.Stdout)
+	displayer := tables.NewTableAllUsersDisplayer(writer)
+	handler := handler.NewUserHandler(userService, displayer)
+	if err := handler.ShowAllUsers(); err != nil {
+		message = fmt.Sprintf("Error fetching all users: %v", err)
+	}
 
 	messages.PrintMessage(message)
 

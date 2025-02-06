@@ -146,23 +146,24 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 	case "0":
 		ManageProductMenu(db, "")
 	default:
-		findProductDetailByProductID(db, productService, message, limit, offset, input)
+		findProductDetailByProductID(db, productService, limit, offset, input)
 	}
 }
 
-func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductService, message string, lengthItem int, starItem int, input string) {
+func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductService, lengthItem int, starItem int, input string) {
 	productID, err := strconv.Atoi(input)
 	if err != nil {
-		message = "Invalid product ID"
-		messages.PrintMessage(message)
-		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+		msg := "Invalid product ID"
+		messages.PrintMessage(msg)
+		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
+		return
 	}
-
 	product, err := productService.GetProductByID(productID)
 	if err != nil {
-		message = "Error finding product by ID"
-		messages.PrintMessage(message)
-		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+		msg := "Error finding product by ID"
+		messages.PrintMessage(msg)
+		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
+		return
 	}
 
 	fmt.Println()
@@ -188,9 +189,9 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 
 	productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
 	if err != nil {
-		message = "Error finding product detail by ID"
-		messages.PrintMessage(message)
-		findAllProductsMenu(db, productService, message, lengthItem, starItem)
+		msg := "Error finding product detail by ID"
+		messages.PrintMessage(msg)
+		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
 		return
 	}
 
@@ -218,9 +219,9 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	fmt.Print("Press any key to back... ")
 	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg := "Error reading input"
+		messages.PrintMessage(msg)
+		ManageProductMenu(db, msg)
 	}
 
 	findAllProductsMenu(db, productService, "", lengthItem, starItem)
@@ -379,10 +380,8 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 			}
 		}
 		findProductByCategoryIDMenu(db, productService, "", limit, offset, true, categoryID)
-	case "0":
-		ManageProductMenu(db, "")
 	default:
-		findProductDetailByProductID(db, productService, message, limit, offset, option)
+		findProductDetailByProductID(db, productService, limit, offset, option)
 	}
 }
 
