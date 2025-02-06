@@ -85,7 +85,6 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 	hasNext, hasPrev := showUsers(userService, limit, offset)
 
 	fmt.Println()
-	var input string
 	if hasPrev {
 		fmt.Println("Type A to Previous")
 	}
@@ -94,6 +93,8 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 	}
 	fmt.Println("Type 0 to Back")
 	fmt.Print("Choose option: ")
+
+	var input string
 	_, err := fmt.Scanln(&input)
 	if err != nil {
 		msg = "No input entered"
