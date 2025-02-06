@@ -1,18 +1,15 @@
 package menu
 
 import (
-	"bufio"
 	"clothing-pair-project/internal/database/sqlrepo"
-	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/handler"
+	"clothing-pair-project/internal/utils/input"
 	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/tables"
-	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -22,7 +19,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func ManageUserMenu(db *sqlx.DB, message string) {
+func ManageUserMenu(db *sqlx.DB, msg string) {
 	fmt.Println()
 	fmt.Println("=====================================")
 	fmt.Println("Manage User Menu")
@@ -34,23 +31,22 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	fmt.Println("0. Back")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
+
+	userRepository := sqlrepo.NewUserRepository(db)
+	userService := services.NewUserService(userRepository)
 
 	var input string
 	fmt.Print("Choose option: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
+		msg = "No input entered"
+		ManageUserMenu(db, msg)
 	}
-
-	userRepository := sqlrepo.NewUserRepository(db)
-	userService := services.NewUserService(userRepository)
 
 	switch input {
 	case "1":
-		findAllUsersMenu(db, userService, "")
+		findAllUsersMenu(db, userService)
 	case "2":
 		findUserByUsername(db, userService, "")
 	case "3":
@@ -62,535 +58,228 @@ func ManageUserMenu(db *sqlx.DB, message string) {
 	case "0":
 		AdminMenu(db, "")
 	default:
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
+		msg = "Invalid input"
+		ManageUserMenu(db, msg)
 	}
 }
 
 func showUsers(userService *services.UserService) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
-	table.SetRowLine(true)
-
-	users, err := userService.GetAllUsers()
-	if err != nil {
-		fmt.Println("Error fetching users:", err)
-		return
+	writer := tablewriter.NewWriter(os.Stdout)
+	displayer := tables.NewTableUsersDisplayer(writer)
+	handler := handler.NewUserHandler(userService, displayer)
+	if err := handler.ShowAllUsers(); err != nil {
+		fmt.Printf("Error fetching all users: %v\n", err)
+	} else {
+		writer.Render()
 	}
-
-	if len(users) == 0 {
-		fmt.Println("No users found.")
-		return
-	}
-
-	for _, user := range users {
-		table.Append([]string{
-			strconv.Itoa(user.UserID),
-			user.Username,
-			user.Email,
-			user.Role,
-			user.CreatedAt.Format("2006-01-02 15:04:05"),
-			strconv.FormatBool(user.Active),
-		})
-	}
-	table.Render()
-	fmt.Println()
 }
 
-func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func findAllUsersMenu(db *sqlx.DB, userService *services.UserService) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
-	writer := tablewriter.NewWriter(os.Stdout)
-	displayer := tables.NewTableAllUsersDisplayer(writer)
-	handler := handler.NewUserHandler(userService, displayer)
-	if err := handler.ShowAllUsers(); err != nil {
-		message = fmt.Sprintf("Error fetching all users: %v", err)
-	}
+	showUsers(userService)
 
-	messages.PrintMessage(message)
-
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err := bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
-	}
-
+	input.BackMenu()
 	ManageUserMenu(db, "")
 }
 
-func findUserByUsername(db *sqlx.DB, userService *services.UserService, message string) {
+func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Find User By Username")
 	fmt.Println("=====================================")
 
-	reader := bufio.NewReader(os.Stdin)
+	messages.PrintMessage(msg)
 
-	messages.PrintMessage(message)
-
-	fmt.Print("Enter username: ")
-	username, err := reader.ReadString('\n')
-	username = strings.TrimSpace(username)
+	username, err := input.Username()
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	}
-
-	if username == "" {
-		message = "Username cannot be empty"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
-	} else if strings.Contains(username, " ") {
-		message = "Username cannot contain spaces"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
+		msg = err.Error()
+		findUserByUsername(db, userService, msg)
 	}
 	fmt.Println()
 
-	user, err := userService.GetUserByUsername(username)
-	if err != nil {
-		message = "User not found"
-		messages.PrintMessage(message)
-		findUserByUsername(db, userService, message)
+	writer := tablewriter.NewWriter(os.Stdout)
+	displayer := tables.NewTableUsersDisplayer(writer)
+	handler := handler.NewUserHandler(userService, displayer)
+	if err := handler.ShowUserByUsername(username); err != nil {
+		msg = "Error fetching user by username"
+		findUserByUsername(db, userService, msg)
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
-	table.SetRowLine(true)
-	table.Append([]string{
-		strconv.Itoa(user.UserID),
-		user.Username,
-		user.Email,
-		user.Role,
-		user.CreatedAt.Format("2006-01-02 15:04:05"),
-		strconv.FormatBool(user.Active),
-	})
-	table.Render()
-
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
-	}
-
+	input.BackMenu()
 	ManageUserMenu(db, "")
 }
 
-func addUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Add User")
 	fmt.Println("=====================================")
 
-	userRepository := sqlrepo.NewUserRepository(db)
+	messages.PrintMessage(msg)
 
-	messages.PrintMessage(message)
-
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("Enter username: ")
-	username, err := reader.ReadString('\n')
-	username = strings.TrimSpace(username)
+	username, err := input.Username()
 	if err != nil {
-		message = "Error reading enumTrim"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		msg = err.Error()
+		addUserMenu(db, userService, msg)
 	}
 
-	if username == "" {
-		message = "Username cannot be empty"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	} else if strings.Contains(username, " ") {
-		message = "Username cannot contain spaces"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	fmt.Print("Enter email: ")
-	email, err := reader.ReadString('\n')
-	email = strings.TrimSpace(email)
+	email, err := input.Email()
 	if err != nil {
-		message = "Error reading enumTrim"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		msg = err.Error()
+		addUserMenu(db, userService, msg)
 	}
 
-	if email == "" {
-		message = "Email cannot be empty"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	} else if strings.Contains(email, " ") {
-		message = "Email cannot contain spaces"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	} else if !strings.Contains(email, "@") {
-		message = "Invalid email format"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	password, err := terminal.HidePassword("Enter Password: ")
+	password, err := input.Password()
 	if err != nil {
-		message = "Error reading password"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		msg = err.Error()
+		addUserMenu(db, userService, msg)
 	}
 
-	if password == nil {
-		message = "Password cannot be empty"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	} else if strings.Contains(string(password), " ") {
-		message = "Password cannot contain spaces"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	confirmPassword, err := terminal.HidePassword("Confirm Password:")
+	role, err := input.Role(db)
 	if err != nil {
-		message = "Error reading password"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	if string(password) != string(confirmPassword) {
-		message = "Password and confirm password do not match"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	hashedPassword, err := helper.HashPassword(string(password))
-	if err != nil {
-		message = "Error hashing password"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	enumRange, err := userRepository.EnumRole()
-	if err != nil {
-		message = "Error fetching enumRange"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	enumTrim := enumRange
-	enumTrim = strings.Trim(enumTrim, "{}")
-	enumStr := strings.ReplaceAll(enumTrim, ",", " ")
-	roles := strings.Split(enumStr, " ")
-
-	fmt.Printf("Role %s: ", enumRange)
-	role, err := reader.ReadString('\n')
-	role = strings.TrimSpace(role)
-	if err != nil {
-		message = "Error reading enumTrim"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	if role == "" {
-		message = "Role cannot be empty"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
-	}
-
-	if !slices.Contains(roles, role) {
-		message = "Role not found"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		msg = err.Error()
+		addUserMenu(db, userService, msg)
 	}
 
 	user := models.User{
 		Username: username,
 		Email:    email,
-		Password: hashedPassword,
+		Password: password,
 		Role:     role,
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Username", "Email", "Password", "Role"})
-	table.SetRowLine(true)
+	writer := tablewriter.NewWriter(os.Stdout)
+	displayer := tables.NewTableAddUserDisplayer(writer)
+	displayer.DisplayAddUser(user)
 
-	table.Append([]string{
-		user.Username,
-		user.Email,
-		"********",
-		user.Role,
-	})
-	table.Render()
-	fmt.Println()
-
-	fmt.Print("Confirm Add User? (y/n): ")
-	confirm, err := reader.ReadString('\n')
-	confirm = strings.TrimSpace(confirm)
+	confirm, err := input.ConfirmAddUser()
 	if err != nil {
-		message = "Error reading enumTrim"
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		msg = err.Error()
+		addUserMenu(db, userService, msg)
 	}
 
-	if confirm != "y" {
-		ManageUserMenu(db, "Add user cancelled, returning to Manage User Menu")
+	if !confirm {
+		msg = "User not added"
+		addUserMenu(db, userService, msg)
 	}
-	fmt.Println()
 
 	err = userService.AddUser(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "users_email_key") {
-			message = "Email already exists"
+			msg = "Email already exists"
 		} else if strings.Contains(err.Error(), "users_username_key") {
-			message = "Username already exists"
+			msg = "Username already exists"
 		} else {
-			message = fmt.Sprintf("Error adding user: %v", err)
+			msg = fmt.Sprintf("Error adding user: %v", err)
 		}
-		messages.PrintMessage(message)
-		addUserMenu(db, userService, message)
+		addUserMenu(db, userService, msg)
 	}
 
-	ManageUserMenu(db, "Successfully added user with username "+username)
+	msg = "User added successfully"
+	ManageUserMenu(db, msg)
 }
 
-func editUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Edit User")
 	fmt.Println("=====================================")
 
 	showUsers(userService)
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("Enter User ID: ")
-	userID, err := reader.ReadString('\n')
+	userID, err := input.UserID()
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
-	}
-
-	if userID == "" {
-		message = "User ID cannot be empty"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
-	} else if strings.Contains(userID, " ") {
-		message = "User ID cannot contain spaces"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
-		message = "User ID must be a number"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = "User ID must be a number"
+		editUserMenu(db, userService, msg)
 	}
 
 	user, err := userService.GetUserByID(userIDInt)
 	if err != nil {
-		message = "User not found"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = "User not found"
+		editUserMenu(db, userService, msg)
 	}
 
 	fmt.Println("Current Username:", user.Username)
-
-	fmt.Print("Do you want to update username? (y/n): ")
-	updateUsername, err := reader.ReadString('\n')
-	updateUsername = strings.TrimSpace(updateUsername)
+	editUsername, err := input.EditUsername(user.Username)
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
 	}
-
-	if updateUsername == "y" {
-		fmt.Print("Enter new username: ")
-		username, err := reader.ReadString('\n')
-		username = strings.TrimSpace(username)
-		if err != nil {
-			message = "Error reading input"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		if username == "" {
-			message = "Username cannot be empty"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		} else if strings.Contains(username, " ") {
-			message = "Username cannot contain spaces"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		user.Username = username
-	} else if updateUsername != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
-	}
+	user.Username = editUsername
 
 	fmt.Println("Current Email:", user.Email)
-
-	fmt.Print("Do you want to update email? (y/n): ")
-	updateEmail, err := reader.ReadString('\n')
-	updateEmail = strings.TrimSpace(updateEmail)
+	editEmail, err := input.EditEmail(user.Email)
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
 	}
+	user.Email = editEmail
 
-	if updateEmail == "y" {
-		fmt.Print("Enter new email: ")
-		email, err := reader.ReadString('\n')
-		email = strings.TrimSpace(email)
-		if err != nil {
-			message = "Error reading input"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		if email == "" {
-			message = "Email cannot be empty"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		} else if strings.Contains(email, " ") {
-			message = "Email cannot contain spaces"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		} else if !strings.Contains(email, "@") {
-			message = "Invalid email format"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		user.Email = email
-	} else if updateEmail != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
-	}
-
-	fmt.Print("Do you want to update password? (y/n): ")
-	updatePassword, err := reader.ReadString('\n')
-	updatePassword = strings.TrimSpace(updatePassword)
+	password, err := input.EditPassword(user.Password)
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
 	}
+	user.Password = password
 
-	if updatePassword == "y" {
-		password, err := terminal.HidePassword("Enter new password (min 6 characters): ")
-		if err != nil {
-			message = "Error reading password"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		if password == nil {
-			message = "Password cannot be empty"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		} else if len(password) < 6 {
-			message = "Password must be at least 6 characters"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		} else if strings.Contains(string(password), " ") {
-			message = "Password cannot contain spaces"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		confirmPassword, err := terminal.HidePassword("Confirm new password (min 6 characters):")
-		if err != nil {
-			message = "Error reading password"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		if string(password) != string(confirmPassword) {
-			message = "Password and confirm password do not match"
-			messages.PrintMessage(message)
-			editUserMenu(db, userService, message)
-		}
-
-		user.Password = string(password)
-	} else if updatePassword != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+	editRole, err := input.EditRole(db, user.Role)
+	if err != nil {
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
 	}
+	user.Role = editRole
 
 	err = userService.UpdateUser(user)
 	if err != nil {
 		if strings.Contains(err.Error(), "users_email_key") {
-			message = "Email already exists"
+			msg = "Email already exists"
 		} else if strings.Contains(err.Error(), "users_username_key") {
-			message = "Username already exists"
+			msg = "Username already exists"
 		} else {
-			message = "Error updating user"
+			msg = "Error updating user"
 		}
-		messages.PrintMessage(message)
-		editUserMenu(db, userService, message)
+		editUserMenu(db, userService, msg)
 	}
 
-	ManageUserMenu(db, "Successfully updated user with ID "+strconv.Itoa(user.UserID))
+	msg = "User updated successfully"
+	ManageUserMenu(db, msg)
 }
 
-func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Delete User")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
 	showUsers(userService)
 
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println()
-	fmt.Print("Enter User ID: ")
-	userID, err := reader.ReadString('\n')
+	userID, err := input.UserID()
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
-	}
-
-	if userID == "" {
-		message = "User ID cannot be empty"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
-	} else if strings.Contains(userID, " ") {
-		message = "User ID cannot contain spaces"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = err.Error()
+		deleteUserMenu(db, userService, msg)
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
-		message = "Invalid User ID"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = "Invalid User ID"
+		deleteUserMenu(db, userService, msg)
 	}
 
 	err = userService.DeleteUser(userIDInt)
 	if err != nil {
-		message = "Error deleting user"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = "Error deleting user"
+		deleteUserMenu(db, userService, msg)
 	}
 
-	ManageUserMenu(db, "Successfully deleted user with ID "+userID)
+	msg = "User deleted successfully"
+	ManageUserMenu(db, msg)
 }
