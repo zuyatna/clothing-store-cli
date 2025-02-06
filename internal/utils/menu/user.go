@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"bufio"
 	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
@@ -9,7 +8,6 @@ import (
 	"clothing-pair-project/internal/utils/input"
 	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/tables"
-	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 	"os"
 	"strconv"
@@ -71,6 +69,8 @@ func showUsers(userService *services.UserService) {
 	handler := handler.NewUserHandler(userService, displayer)
 	if err := handler.ShowAllUsers(); err != nil {
 		fmt.Printf("Error fetching all users: %v\n", err)
+	} else {
+		writer.Render()
 	}
 }
 
@@ -175,6 +175,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 		}
 		addUserMenu(db, userService, msg)
 	}
+
 	msg = "User added successfully"
 	ManageUserMenu(db, msg)
 }
@@ -188,169 +189,53 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 
 	messages.PrintMessage(msg)
 
-	fmt.Print("Enter User ID: ")
-	reader := bufio.NewReader(os.Stdin)
-	userID, err := reader.ReadString('\n')
+	userID, err := input.UserID()
 	if err != nil {
-		msg = "Error reading input"
-		messages.PrintMessage(msg)
-		editUserMenu(db, userService, msg)
-	}
-
-	if userID == "" {
-		msg = "User ID cannot be empty"
-		messages.PrintMessage(msg)
-		editUserMenu(db, userService, msg)
-	} else if strings.Contains(userID, " ") {
-		msg = "User ID cannot contain spaces"
-		messages.PrintMessage(msg)
+		msg = err.Error()
 		editUserMenu(db, userService, msg)
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
 		msg = "User ID must be a number"
-		messages.PrintMessage(msg)
 		editUserMenu(db, userService, msg)
 	}
 
 	user, err := userService.GetUserByID(userIDInt)
 	if err != nil {
 		msg = "User not found"
-		messages.PrintMessage(msg)
 		editUserMenu(db, userService, msg)
 	}
 
 	fmt.Println("Current Username:", user.Username)
-
-	fmt.Print("Do you want to update username? (y/n): ")
-	updateUsername, err := reader.ReadString('\n')
-	updateUsername = strings.TrimSpace(updateUsername)
+	editUsername, err := input.EditUsername(user.Username)
 	if err != nil {
-		msg = "Error reading input"
-		messages.PrintMessage(msg)
+		msg = err.Error()
 		editUserMenu(db, userService, msg)
 	}
-
-	if updateUsername == "y" {
-		fmt.Print("Enter new username: ")
-		username, err := reader.ReadString('\n')
-		username = strings.TrimSpace(username)
-		if err != nil {
-			msg = "Error reading input"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		if username == "" {
-			msg = "Username cannot be empty"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		} else if strings.Contains(username, " ") {
-			msg = "Username cannot contain spaces"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		user.Username = username
-	} else if updateUsername != "n" {
-		msg = "Invalid input"
-		messages.PrintMessage(msg)
-		editUserMenu(db, userService, msg)
-	}
+	user.Username = editUsername
 
 	fmt.Println("Current Email:", user.Email)
-
-	fmt.Print("Do you want to update email? (y/n): ")
-	updateEmail, err := reader.ReadString('\n')
-	updateEmail = strings.TrimSpace(updateEmail)
+	editEmail, err := input.EditEmail(user.Email)
 	if err != nil {
-		msg = "Error reading input"
-		messages.PrintMessage(msg)
+		msg = err.Error()
 		editUserMenu(db, userService, msg)
 	}
+	user.Email = editEmail
 
-	if updateEmail == "y" {
-		fmt.Print("Enter new email: ")
-		email, err := reader.ReadString('\n')
-		email = strings.TrimSpace(email)
-		if err != nil {
-			msg = "Error reading input"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		if email == "" {
-			msg = "Email cannot be empty"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		} else if strings.Contains(email, " ") {
-			msg = "Email cannot contain spaces"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		} else if !strings.Contains(email, "@") {
-			msg = "Invalid email format"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		user.Email = email
-	} else if updateEmail != "n" {
-		msg = "Invalid input"
-		messages.PrintMessage(msg)
-		editUserMenu(db, userService, msg)
-	}
-
-	fmt.Print("Do you want to update password? (y/n): ")
-	updatePassword, err := reader.ReadString('\n')
-	updatePassword = strings.TrimSpace(updatePassword)
+	password, err := input.EditPassword(user.Password)
 	if err != nil {
-		msg = "Error reading input"
-		messages.PrintMessage(msg)
+		msg = err.Error()
 		editUserMenu(db, userService, msg)
 	}
+	user.Password = password
 
-	if updatePassword == "y" {
-		password, err := terminal.HidePassword("Enter new password (min 6 characters): ")
-		if err != nil {
-			msg = "Error reading password"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		if password == nil {
-			msg = "Password cannot be empty"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		} else if len(password) < 6 {
-			msg = "Password must be at least 6 characters"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		} else if strings.Contains(string(password), " ") {
-			msg = "Password cannot contain spaces"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		confirmPassword, err := terminal.HidePassword("Confirm new password (min 6 characters):")
-		if err != nil {
-			msg = "Error reading password"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		if string(password) != string(confirmPassword) {
-			msg = "Password and confirm password do not match"
-			messages.PrintMessage(msg)
-			editUserMenu(db, userService, msg)
-		}
-
-		user.Password = string(password)
-	} else if updatePassword != "n" {
-		msg = "Invalid input"
-		messages.PrintMessage(msg)
+	editRole, err := input.EditRole(db, user.Role)
+	if err != nil {
+		msg = err.Error()
 		editUserMenu(db, userService, msg)
 	}
+	user.Role = editRole
 
 	err = userService.UpdateUser(user)
 	if err != nil {
@@ -361,56 +246,40 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 		} else {
 			msg = "Error updating user"
 		}
-		messages.PrintMessage(msg)
 		editUserMenu(db, userService, msg)
 	}
 
-	ManageUserMenu(db, "Successfully updated user with ID "+strconv.Itoa(user.UserID))
+	msg = "User updated successfully"
+	ManageUserMenu(db, msg)
 }
 
-func deleteUserMenu(db *sqlx.DB, userService *services.UserService, message string) {
+func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Delete User")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
 	showUsers(userService)
 
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println()
-	fmt.Print("Enter User ID: ")
-	userID, err := reader.ReadString('\n')
+	userID, err := input.UserID()
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
-	}
-
-	if userID == "" {
-		message = "User ID cannot be empty"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
-	} else if strings.Contains(userID, " ") {
-		message = "User ID cannot contain spaces"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = err.Error()
+		deleteUserMenu(db, userService, msg)
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
-		message = "Invalid User ID"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = "Invalid User ID"
+		deleteUserMenu(db, userService, msg)
 	}
 
 	err = userService.DeleteUser(userIDInt)
 	if err != nil {
-		message = "Error deleting user"
-		messages.PrintMessage(message)
-		deleteUserMenu(db, userService, message)
+		msg = "Error deleting user"
+		deleteUserMenu(db, userService, msg)
 	}
 
-	ManageUserMenu(db, "Successfully deleted user with ID "+userID)
+	msg = "User deleted successfully"
+	ManageUserMenu(db, msg)
 }

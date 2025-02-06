@@ -13,6 +13,23 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func UserID() (string, error) {
+	fmt.Print("Enter User ID: ")
+	reader := bufio.NewReader(os.Stdin)
+	userID, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("error reading input: %w", err)
+	}
+
+	if userID == "" {
+		return "", fmt.Errorf("user ID cannot be empty")
+	} else if strings.Contains(userID, " ") {
+		return "", fmt.Errorf("user ID cannot contain spaces")
+	}
+
+	return userID, nil
+}
+
 func Username() (string, error) {
 	fmt.Print("Enter username: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -124,4 +141,96 @@ func ConfirmAddUser() (bool, error) {
 	}
 
 	return false, nil
+}
+
+func EditUsername(currentUsername string) (string, error) {
+	fmt.Print("Do you want to update username? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	updateUsername, err := reader.ReadString('\n')
+	updateUsername = strings.TrimSpace(updateUsername)
+	if err != nil {
+		return currentUsername, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if updateUsername == "y" {
+		username, err := Username()
+		if err != nil {
+			return currentUsername, fmt.Errorf("error reading input: %w", err)
+		}
+
+		return username, nil
+	} else if updateUsername != "n" {
+		return "", fmt.Errorf("invalid input")
+	}
+
+	return currentUsername, nil
+}
+
+func EditEmail(currentEmail string) (string, error) {
+	fmt.Print("Do you want to update email? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	updateEmail, err := reader.ReadString('\n')
+	updateEmail = strings.TrimSpace(updateEmail)
+	if err != nil {
+		return currentEmail, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if updateEmail == "y" {
+		email, err := Email()
+		if err != nil {
+			return currentEmail, fmt.Errorf("error reading input: %w", err)
+		}
+
+		return email, nil
+	} else if updateEmail != "n" {
+		return currentEmail, fmt.Errorf("invalid input")
+	}
+
+	return currentEmail, nil
+}
+
+func EditPassword(currentPassword string) (string, error) {
+	fmt.Print("Do you want to update password? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	updatePassword, err := reader.ReadString('\n')
+	updatePassword = strings.TrimSpace(updatePassword)
+	if err != nil {
+		return currentPassword, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if updatePassword == "y" {
+		password, err := Password()
+		if err != nil {
+			return currentPassword, fmt.Errorf("error reading input: %w", err)
+		}
+
+		return password, nil
+	} else if updatePassword != "n" {
+		return currentPassword, fmt.Errorf("invalid input")
+	}
+
+	return currentPassword, nil
+}
+
+func EditRole(db *sqlx.DB, currentRole string) (string, error) {
+	fmt.Print("Do you want to update role? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	updateRole, err := reader.ReadString('\n')
+	updateRole = strings.TrimSpace(updateRole)
+	if err != nil {
+		return currentRole, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if updateRole == "y" {
+		role, err := Role(db)
+		if err != nil {
+			return currentRole, fmt.Errorf("error reading input: %w", err)
+		}
+
+		return role, nil
+	} else if updateRole != "n" {
+		return currentRole, fmt.Errorf("invalid input")
+	}
+
+	return currentRole, nil
 }
