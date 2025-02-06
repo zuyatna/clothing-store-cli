@@ -42,24 +42,32 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 	if err != nil {
 		msg = "No input entered"
 		ManageUserMenu(db, msg)
+		return
 	}
 
 	switch input {
 	case "1":
 		findAllUsersMenu(db, userService, "", 5, 0)
+		return
 	case "2":
 		findUserByUsername(db, userService, "")
+		return
 	case "3":
 		addUserMenu(db, userService, "")
+		return
 	case "4":
 		editUserMenu(db, userService, "")
+		return
 	case "5":
 		deleteUserMenu(db, userService, "")
+		return
 	case "0":
 		AdminMenu(db, "")
+		return
 	default:
 		msg = "Invalid input"
 		ManageUserMenu(db, msg)
+		return
 	}
 }
 
@@ -70,6 +78,7 @@ func showUsers(userService *services.UserService, limit, offset int) (bool, bool
 	hasNext, hasPrev, err := handler.ShowAllUsers(limit, offset)
 	if err != nil {
 		fmt.Println("Error fetching users:", err)
+		return false, false
 	}
 
 	return hasNext, hasPrev
@@ -99,6 +108,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 	if err != nil {
 		msg = "No input entered"
 		ManageUserMenu(db, msg)
+		return
 	}
 
 	switch input {
@@ -107,6 +117,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 			offset += limit
 		}
 		findAllUsersMenu(db, userService, "", limit, offset)
+		return
 	case "A", "a":
 		if hasPrev {
 			offset -= limit
@@ -115,11 +126,14 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 			}
 		}
 		findAllUsersMenu(db, userService, "", limit, offset)
+		return
 	case "0":
 		ManageUserMenu(db, "")
+		return
 	default:
 		msg = "Invalid input"
 		findAllUsersMenu(db, userService, msg, limit, offset)
+		return
 	}
 }
 
@@ -134,7 +148,9 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg stri
 	if err != nil {
 		msg = err.Error()
 		findUserByUsername(db, userService, msg)
+		return
 	}
+
 	fmt.Println()
 
 	writer := tablewriter.NewWriter(os.Stdout)
@@ -160,24 +176,28 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	email, err := input.Email()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	password, err := input.Password()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	role, err := input.Role(db)
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	user := models.User{
@@ -195,11 +215,13 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	if !confirm {
 		msg = "User not added"
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	err = userService.AddUser(user)
@@ -212,6 +234,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 			msg = fmt.Sprintf("Error adding user: %v", err)
 		}
 		addUserMenu(db, userService, msg)
+		return
 	}
 
 	msg = "User added successfully"
@@ -229,18 +252,21 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
+		return
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
 		msg = "User ID must be a number"
 		editUserMenu(db, userService, msg)
+		return
 	}
 
 	user, err := userService.GetUserByID(userIDInt)
 	if err != nil {
 		msg = "User not found"
 		editUserMenu(db, userService, msg)
+		return
 	}
 
 	fmt.Println("Current Username:", user.Username)
@@ -248,6 +274,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
+		return
 	}
 	user.Username = editUsername
 
@@ -256,6 +283,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
+		return
 	}
 	user.Email = editEmail
 
@@ -263,6 +291,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
+		return
 	}
 	user.Password = password
 
@@ -270,6 +299,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
+		return
 	}
 	user.Role = editRole
 
@@ -283,6 +313,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 			msg = "Error updating user"
 		}
 		editUserMenu(db, userService, msg)
+		return
 	}
 
 	msg = "User updated successfully"
@@ -300,18 +331,21 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) 
 	if err != nil {
 		msg = err.Error()
 		deleteUserMenu(db, userService, msg)
+		return
 	}
 
 	userIDInt, err := strconv.Atoi(strings.TrimSpace(userID))
 	if err != nil {
 		msg = "Invalid User ID"
 		deleteUserMenu(db, userService, msg)
+		return
 	}
 
 	err = userService.DeleteUser(userIDInt)
 	if err != nil {
 		msg = "Error deleting user"
 		deleteUserMenu(db, userService, msg)
+		return
 	}
 
 	msg = "User deleted successfully"
