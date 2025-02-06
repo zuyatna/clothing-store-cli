@@ -36,7 +36,7 @@ func LoginMenu(db *sqlx.DB) {
 		fmt.Println()
 
 		DashboardMenu(db, errorMessage)
-	} else if user.Active == false {
+	} else if !user.Active {
 		errorMessage := "User is inactive, please contact admin"
 		fmt.Println(errorMessage)
 		fmt.Println()

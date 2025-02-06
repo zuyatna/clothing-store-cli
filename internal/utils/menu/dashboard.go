@@ -32,6 +32,7 @@ func DashboardMenu(db *sqlx.DB, message string) {
 		// TODO: Implement register
 	case "0":
 		fmt.Println("Goodbye!")
+		db.Close()
 		return
 	default:
 		message = "Invalid input. Please try again."

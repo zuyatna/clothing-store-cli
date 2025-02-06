@@ -86,6 +86,8 @@ func findAllCategoriesMenu(db *sqlx.DB, categoryService *services.CategoryServic
 	fmt.Println("Find All Categories")
 	fmt.Println("=====================================")
 
+	messages.PrintMessage(message)
+
 	allCategories(categoryService)
 
 	fmt.Println()
