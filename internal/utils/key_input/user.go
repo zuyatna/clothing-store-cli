@@ -1,4 +1,4 @@
-package input
+package key_input
 
 import (
 	"bufio"
@@ -100,7 +100,7 @@ func Password() (string, error) {
 }
 
 func Role(db *sqlx.DB) (string, error) {
-	userRepository := sqlrepo.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserQuery(db)
 	enumRange, err := userRepository.EnumRole()
 	if err != nil {
 		return "", fmt.Errorf("error fetching enum role: %w", err)

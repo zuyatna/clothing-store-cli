@@ -1,4 +1,4 @@
-package input
+package key_input
 
 import (
 	"bufio"
