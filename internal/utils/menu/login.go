@@ -4,6 +4,7 @@ import (
 	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/helper"
 	"clothing-pair-project/internal/services"
+	"clothing-pair-project/internal/utils/key_input"
 	"clothing-pair-project/internal/utils/terminal"
 	"fmt"
 
@@ -12,11 +13,10 @@ import (
 
 func LoginMenu(db *sqlx.DB) {
 	var username, password string
-	fmt.Print("Enter username: ")
-	_, err := fmt.Scanln(&username)
+
+	username, err := key_input.Username()
 	if err != nil {
-		fmt.Println("Error reading input:", err)
-		return
+		fmt.Println("Error reading username:", err)
 	}
 
 	passwordBytes, err := terminal.HidePassword("Enter Password:")
@@ -26,7 +26,7 @@ func LoginMenu(db *sqlx.DB) {
 	}
 	password = string(passwordBytes)
 
-	userRepository := sqlrepo.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserQuery(db)
 	userService := services.NewUserService(userRepository)
 
 	user, err := userService.GetUserByUsername(username)

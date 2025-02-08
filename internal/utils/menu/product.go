@@ -15,7 +15,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func ManageProductMenu(db *sqlx.DB, message string) {
+func ManageProductMenu(db *sqlx.DB, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Manage Product Menu")
 	fmt.Println("1. Find All Products")
@@ -27,39 +27,46 @@ func ManageProductMenu(db *sqlx.DB, message string) {
 	fmt.Println("0. Back")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
+
+	productRepository := sqlrepo.NewProductRepository(db)
+	productService := services.NewProductService(productRepository)
 
 	var input string
 	fmt.Print("Choose option: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		ManageUserMenu(db, message)
+		msg = "No key_input entered"
+		ManageUserMenu(db, msg)
+		return
 	}
-
-	productRepository := sqlrepo.NewProductRepository(db)
-	productService := services.NewProductService(productRepository)
 
 	switch input {
 	case "1":
 		findAllProductsMenu(db, productService, "", 5, 0)
+		return
 	case "2":
 		findProductByNameMenu(db, productService, "")
+		return
 	case "3":
 		findProductByCategoryIDMenu(db, productService, "", 5, 0, false, 0)
+		return
 	case "4":
 		// Add Product
+		return
 	case "5":
 		editProductMenu(db, productService, "", 5, 0)
+		return
 	case "6":
 		// Delete Product
+		return
 	case "0":
 		AdminMenu(db, "")
+		return
 	default:
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg = "Invalid key_input"
+		ManageProductMenu(db, msg)
+		return
 	}
 }
 
@@ -103,16 +110,15 @@ func showProducts(productService *services.ProductService, limit, offset int) (b
 	return hasNext, hasPrev
 }
 
-func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, message string, limit, offset int) {
+func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, msg string, limit, offset int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Products")
 	fmt.Println("=====================================")
 
 	hasNext, hasPrev := showProducts(productService, limit, offset)
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
-	var input string
 	if hasPrev {
 		fmt.Println("Type A to Previous")
 	}
@@ -122,11 +128,13 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 	fmt.Println("Type 0 to Back")
 	fmt.Println("Type Other Number to Choose Product")
 	fmt.Print("Choose option: ")
+
+	var input string
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg = "No key_input entered"
+		ManageProductMenu(db, msg)
+		return
 	}
 
 	switch input {
@@ -135,6 +143,7 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 			offset += limit
 		}
 		findAllProductsMenu(db, productService, "", limit, offset)
+		return
 	case "A", "a":
 		if hasPrev {
 			offset -= limit
@@ -143,10 +152,13 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 			}
 		}
 		findAllProductsMenu(db, productService, "", limit, offset)
+		return
 	case "0":
 		ManageProductMenu(db, "")
+		return
 	default:
 		findProductDetailByProductID(db, productService, limit, offset, input)
+		return
 	}
 }
 
@@ -154,14 +166,12 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	productID, err := strconv.Atoi(input)
 	if err != nil {
 		msg := "Invalid product ID"
-		messages.PrintMessage(msg)
 		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
 		return
 	}
 	product, err := productService.GetProductByID(productID)
 	if err != nil {
 		msg := "Error finding product by ID"
-		messages.PrintMessage(msg)
 		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
 		return
 	}
@@ -190,7 +200,6 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
 	if err != nil {
 		msg := "Error finding product detail by ID"
-		messages.PrintMessage(msg)
 		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
 		return
 	}
@@ -219,28 +228,28 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	fmt.Print("Press any key to back... ")
 	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
-		msg := "Error reading input"
-		messages.PrintMessage(msg)
+		msg := "Error reading key_input"
 		ManageProductMenu(db, msg)
+		return
 	}
 
 	findAllProductsMenu(db, productService, "", lengthItem, starItem)
 }
 
-func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService, message string) {
+func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService, msg string) {
 	fmt.Println("=====================================")
 	fmt.Println("Find Product By Name")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
 	var input string
 	fmt.Print("Enter product name: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		findProductByNameMenu(db, productService, message)
+		msg = "No key_input entered"
+		findProductByNameMenu(db, productService, msg)
+		return
 	}
 
 	products, err := productService.GetProductByName(input)
@@ -269,26 +278,25 @@ func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService,
 		})
 	}
 	table.Render()
-	fmt.Println()
 
 	fmt.Println()
 	fmt.Print("Press any key to back... ")
 	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg = "Error reading key_input"
+		ManageProductMenu(db, msg)
+		return
 	}
 
 	ManageProductMenu(db, "")
 }
 
-func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductService, message string, limit int, offset int, isActive bool, categoryID int) {
+func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductService, msg string, limit int, offset int, isActive bool, categoryID int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find Product By Category")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
 	categoryRepository := sqlrepo.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
@@ -299,16 +307,16 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 		fmt.Print("Enter category ID: ")
 		_, err := fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			findProductByCategoryIDMenu(db, productService, message, limit, offset, false, 0)
+			msg = "No key_input entered"
+			findProductByCategoryIDMenu(db, productService, msg, limit, offset, false, 0)
+			return
 		}
 
 		categoryID, err = strconv.Atoi(input)
 		if err != nil {
-			message = "Invalid category ID"
-			messages.PrintMessage(message)
-			findProductByCategoryIDMenu(db, productService, message, limit, offset, false, 0)
+			msg = "Invalid category ID"
+			messages.PrintMessage(msg)
+			findProductByCategoryIDMenu(db, productService, msg, limit, offset, false, 0)
 			return
 		}
 	}
@@ -349,7 +357,6 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	hasNext := len(products) > limit
 	hasPrev := offset > 0
 
-	var option string
 	if hasPrev {
 		fmt.Println("Type A to Previous")
 	}
@@ -359,11 +366,13 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 	fmt.Println("Type 0 to Back")
 	fmt.Println("Type Other Number to Choose Product")
 	fmt.Print("Choose option: ")
+
+	var option string
 	_, err = fmt.Scanln(&option)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg = "No key_input entered"
+		ManageProductMenu(db, msg)
+		return
 	}
 
 	switch option {
@@ -372,6 +381,7 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 			offset += limit
 		}
 		findProductByCategoryIDMenu(db, productService, "", limit, offset, true, categoryID)
+		return
 	case "A", "a":
 		if hasPrev {
 			offset -= limit
@@ -380,39 +390,41 @@ func findProductByCategoryIDMenu(db *sqlx.DB, productService *services.ProductSe
 			}
 		}
 		findProductByCategoryIDMenu(db, productService, "", limit, offset, true, categoryID)
+		return
 	default:
 		findProductDetailByProductID(db, productService, limit, offset, option)
+		return
 	}
 }
 
-func editProductMenu(db *sqlx.DB, productService *services.ProductService, message string, limit, offset int) {
+func editProductMenu(db *sqlx.DB, productService *services.ProductService, msg string, limit, offset int) {
 	fmt.Println("=====================================")
 	fmt.Println("Edit Product")
 	fmt.Println("=====================================")
 
-	messages.PrintMessage(message)
+	messages.PrintMessage(msg)
 
 	var input string
 	fmt.Print("Enter product ID: ")
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "No key_input entered"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	productID, err := strconv.Atoi(input)
 	if err != nil {
-		message = "Invalid product ID"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "Invalid product ID"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	product, err := productService.GetProductByID(productID)
 	if err != nil {
-		message = "Error finding product by ID"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "Error finding product by ID"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	fmt.Println()
@@ -432,36 +444,34 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 		product.Type,
 	})
 	table.Render()
-	fmt.Println()
 
+	fmt.Println()
 	fmt.Print("Do you want to change the product? (y/n): ")
 	_, err = fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "No key_input entered"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	if input == "y" {
-
 		categoryRepository := sqlrepo.NewCategoryRepository(db)
 		categoryService := services.NewCategoryService(categoryRepository)
 
 		categories, err := categoryService.GetCategoryByID(product.CategoryID)
 		if err != nil {
-			message = "Error finding category by ID"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Error finding category by ID"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Category: ", categories.Name)
-
 		fmt.Print("Do you want to change the category? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -469,33 +479,32 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			fmt.Print("Enter new category ID: ")
 			_, err = fmt.Scanln(&input)
 			if err != nil {
-				message = "No input entered"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "No key_input entered"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			newCategoryID, err := strconv.Atoi(input)
 			if err != nil {
-				message = "Invalid category ID"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Invalid category ID"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.CategoryID = newCategoryID
 		} else if input != "n" {
-			message = "Invalid input"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Invalid key_input"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Product Name: ", product.Name)
-
 		fmt.Print("Do you want to change the product name? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -503,32 +512,31 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			updateProductName, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			updateProductName = strings.TrimSpace(updateProductName)
 			if err != nil {
-				message = "Error reading input"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Error reading key_input"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			if updateProductName == "" {
-				message = "Product name cannot be empty"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Product name cannot be empty"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.Name = updateProductName
 		} else if input != "n" {
-			message = "Invalid input"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Invalid key_input"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Product Price: ", product.Price)
-
 		fmt.Print("Do you want to change the product price? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -536,45 +544,44 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			updateProductPrice, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			updateProductPrice = strings.TrimSpace(updateProductPrice)
 			if err != nil {
-				message = "Error reading input"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Error reading key_input"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			if updateProductPrice == "" {
-				message = "Product price cannot be empty"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Product price cannot be empty"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			updateProductPriceFloat, err := strconv.ParseFloat(updateProductPrice, 64)
 			if err != nil {
-				message = "Invalid price"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Invalid price"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			if updateProductPriceFloat < 0 {
-				message = "Product price cannot be negative"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Product price cannot be negative"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.Price = updateProductPriceFloat
 		} else if input != "n" {
-			message = "Invalid input"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Invalid key_input"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Product Description: ", product.Description.String)
-
 		fmt.Print("Do you want to change the product description? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -582,9 +589,9 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			updateProductDescription, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			updateProductDescription = strings.TrimSpace(updateProductDescription)
 			if err != nil {
-				message = "Error reading input"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Error reading key_input"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.Description = sql.NullString{
@@ -592,19 +599,18 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 				Valid:  true,
 			}
 		} else if input != "n" {
-			message = "Invalid input"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Invalid key_input"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Product Image: ", product.Images.String)
-
 		fmt.Print("Do you want to change the product image? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -612,9 +618,9 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			updateProductImage, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			updateProductImage = strings.TrimSpace(updateProductImage)
 			if err != nil {
-				message = "Error reading input"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Error reading key_input"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.Images = sql.NullString{
@@ -622,19 +628,18 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 				Valid:  true,
 			}
 		} else if input != "n" {
-			message = "Invalid input"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Invalid key_input"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		fmt.Println("Current Product Type: ", product.Type)
-
 		fmt.Print("Do you want to change the product type? (y/n): ")
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			message = "No input entered"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "No key_input entered"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
 		if input == "y" {
@@ -644,23 +649,23 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			updateProductType, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			updateProductType = strings.TrimSpace(updateProductType)
 			if err != nil {
-				message = "Error reading input"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Error reading key_input"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			if updateProductType == "" {
-				message = "Product type cannot be empty"
-				messages.PrintMessage(message)
-				editProductMenu(db, productService, message, limit, offset)
+				msg = "Product type cannot be empty"
+				editProductMenu(db, productService, msg, limit, offset)
+				return
 			}
 
 			product.Type = updateProductType
 		}
 	} else if input != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "Invalid key_input"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	fmt.Println()
@@ -680,38 +685,38 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 		product.Type,
 	})
 	table.Render()
-	fmt.Println()
 
+	fmt.Println()
 	fmt.Print("Do you want to save the changes? (y/n): ")
 	_, err = fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "No key_input entered"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	if input == "y" {
 		err = productService.UpdateProduct(product)
 		if err != nil {
-			message = "Error updating product"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Error updating product"
+			editProductMenu(db, productService, msg, limit, offset)
+			return
 		}
 
-		message = "Product updated successfully"
-		messages.PrintMessage(message)
+		msg = "Product updated successfully"
+		messages.PrintMessage(msg)
 	} else if input != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "Invalid key_input"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	fmt.Print("Do you want to edit the product detail? (y/n): ")
 	_, err = fmt.Scanln(&input)
 	if err != nil {
-		message = "No input entered"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "No key_input entered"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	if input == "y" {
@@ -722,9 +727,8 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 
 		productDetails, err := productDetailRequestService.GetProductDetailByProductID(productID)
 		if err != nil {
-			message = "Error finding product detail by ID"
-			messages.PrintMessage(message)
-			editProductMenu(db, productService, message, limit, offset)
+			msg = "Error finding product detail by ID"
+			editProductMenu(db, productService, msg, limit, offset)
 			return
 		}
 
@@ -747,20 +751,21 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, messa
 			})
 		}
 		tableDetail.Render()
+
 		fmt.Println()
 	} else if input != "n" {
-		message = "Invalid input"
-		messages.PrintMessage(message)
-		editProductMenu(db, productService, message, limit, offset)
+		msg = "Invalid key_input"
+		editProductMenu(db, productService, msg, limit, offset)
+		return
 	}
 
 	fmt.Println()
 	fmt.Print("Press any key to back... ")
 	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	if err != nil {
-		message = "Error reading input"
-		messages.PrintMessage(message)
-		ManageProductMenu(db, message)
+		msg = "Error reading key_input"
+		ManageProductMenu(db, msg)
+		return
 	}
 
 	ManageProductMenu(db, "")

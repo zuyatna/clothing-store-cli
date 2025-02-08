@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"clothing-pair-project/internal/utils/messages"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -32,11 +31,13 @@ func DashboardMenu(db *sqlx.DB, message string) {
 		// TODO: Implement register
 	case "0":
 		fmt.Println("Goodbye!")
-		db.Close()
+		err := db.Close()
+		if err != nil {
+			return
+		}
 		return
 	default:
 		message = "Invalid input. Please try again."
-		messages.PrintMessage(message)
 		DashboardMenu(db, message)
 	}
 }

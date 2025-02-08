@@ -28,7 +28,6 @@ func AdminMenu(db *sqlx.DB, message string) {
 	_, err := fmt.Scanln(&input)
 	if err != nil {
 		message = "No input entered"
-		messages.PrintMessage(message)
 		AdminMenu(db, message)
 	}
 
@@ -49,11 +48,9 @@ func AdminMenu(db *sqlx.DB, message string) {
 		// TODO: reports menu
 	case "0":
 		message = "Logging out..."
-		messages.PrintMessage(message)
 		DashboardMenu(db, message)
 	default:
 		message = "Invalid input"
-		messages.PrintMessage(message)
 		AdminMenu(db, message)
 	}
 }

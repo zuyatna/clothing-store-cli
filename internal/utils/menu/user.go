@@ -5,7 +5,7 @@ import (
 	"clothing-pair-project/internal/models"
 	"clothing-pair-project/internal/services"
 	"clothing-pair-project/internal/utils/handler"
-	"clothing-pair-project/internal/utils/input"
+	"clothing-pair-project/internal/utils/key_input"
 	"clothing-pair-project/internal/utils/messages"
 	"clothing-pair-project/internal/utils/tables"
 	"fmt"
@@ -33,7 +33,7 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 
 	messages.PrintMessage(msg)
 
-	userRepository := sqlrepo.NewUserRepository(db)
+	userRepository := sqlrepo.NewUserQuery(db)
 	userService := services.NewUserService(userRepository)
 
 	var input string
@@ -73,9 +73,10 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 
 func showUsers(userService *services.UserService, limit, offset int) (bool, bool) {
 	writer := tablewriter.NewWriter(os.Stdout)
-	displayer := tables.NewTableUsersDisplayer(writer)
-	handler := handler.NewUserHandler(userService, displayer)
-	hasNext, hasPrev, err := handler.ShowAllUsers(limit, offset)
+	displayed := tables.UsersTablePresenter(writer)
+	userHandler := handler.NewUserHandler(userService, displayed)
+
+	hasNext, hasPrev, err := userHandler.ShowAllUsers(limit, offset)
 	if err != nil {
 		fmt.Println("Error fetching users:", err)
 		return false, false
@@ -106,7 +107,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 	var input string
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		msg = "No input entered"
+		msg = "No key_input entered"
 		ManageUserMenu(db, msg)
 		return
 	}
@@ -131,7 +132,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 		ManageUserMenu(db, "")
 		return
 	default:
-		msg = "Invalid input"
+		msg = "Invalid key_input"
 		findAllUsersMenu(db, userService, msg, limit, offset)
 		return
 	}
@@ -144,7 +145,7 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg stri
 
 	messages.PrintMessage(msg)
 
-	username, err := input.Username()
+	username, err := key_input.Username()
 	if err != nil {
 		msg = err.Error()
 		findUserByUsername(db, userService, msg)
@@ -154,14 +155,14 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg stri
 	fmt.Println()
 
 	writer := tablewriter.NewWriter(os.Stdout)
-	displayer := tables.NewTableUsersDisplayer(writer)
-	handler := handler.NewUserHandler(userService, displayer)
-	if err := handler.ShowUserByUsername(username); err != nil {
+	displayed := tables.UsersTablePresenter(writer)
+	userHandler := handler.NewUserHandler(userService, displayed)
+	if err := userHandler.ShowUserByUsername(username); err != nil {
 		msg = "Error fetching user by username"
 		findUserByUsername(db, userService, msg)
 	}
 
-	input.BackMenu()
+	key_input.BackMenu()
 	ManageUserMenu(db, "")
 }
 
@@ -172,28 +173,28 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 
 	messages.PrintMessage(msg)
 
-	username, err := input.Username()
+	username, err := key_input.Username()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
 		return
 	}
 
-	email, err := input.Email()
+	email, err := key_input.Email()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
 		return
 	}
 
-	password, err := input.Password()
+	password, err := key_input.Password()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
 		return
 	}
 
-	role, err := input.Role(db)
+	role, err := key_input.Role(db)
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
@@ -208,10 +209,10 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	}
 
 	writer := tablewriter.NewWriter(os.Stdout)
-	displayer := tables.NewTableAddUserDisplayer(writer)
-	displayer.DisplayAddUser(user)
+	displayed := tables.AddUserTablePresenter(writer)
+	displayed.DisplayAddUser(user)
 
-	confirm, err := input.ConfirmAddUser()
+	confirm, err := key_input.ConfirmAddUser()
 	if err != nil {
 		msg = err.Error()
 		addUserMenu(db, userService, msg)
@@ -248,7 +249,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 
 	messages.PrintMessage(msg)
 
-	userID, err := input.UserID()
+	userID, err := key_input.UserID()
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
@@ -270,7 +271,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	}
 
 	fmt.Println("Current Username:", user.Username)
-	editUsername, err := input.EditUsername(user.Username)
+	editUsername, err := key_input.EditUsername(user.Username)
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
@@ -279,7 +280,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	user.Username = editUsername
 
 	fmt.Println("Current Email:", user.Email)
-	editEmail, err := input.EditEmail(user.Email)
+	editEmail, err := key_input.EditEmail(user.Email)
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
@@ -287,7 +288,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	}
 	user.Email = editEmail
 
-	password, err := input.EditPassword(user.Password)
+	password, err := key_input.EditPassword(user.Password)
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
@@ -295,7 +296,7 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	}
 	user.Password = password
 
-	editRole, err := input.EditRole(db, user.Role)
+	editRole, err := key_input.EditRole(db, user.Role)
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
@@ -327,7 +328,7 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) 
 
 	messages.PrintMessage(msg)
 
-	userID, err := input.UserID()
+	userID, err := key_input.UserID()
 	if err != nil {
 		msg = err.Error()
 		deleteUserMenu(db, userService, msg)
