@@ -7,15 +7,15 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UserRepository struct {
+type UserQuery struct {
 	db *sqlx.DB
 }
 
-func NewUserRepository(db *sqlx.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserQuery(db *sqlx.DB) *UserQuery {
+	return &UserQuery{db: db}
 }
 
-func (repository *UserRepository) FindAll(limit, offset int) ([]models.User, error) {
+func (repository *UserQuery) FindAll(limit, offset int) ([]models.User, error) {
 	var users []models.User
 	query := "SELECT * FROM users ORDER BY user_id ASC LIMIT $1 OFFSET $2"
 	err := repository.db.Select(&users, query, limit, offset)
@@ -26,7 +26,7 @@ func (repository *UserRepository) FindAll(limit, offset int) ([]models.User, err
 	return users, nil
 }
 
-func (repository *UserRepository) FindByID(id int) (models.User, error) {
+func (repository *UserQuery) FindByID(id int) (models.User, error) {
 	var user models.User
 	query := "SELECT * FROM users WHERE user_id = $1"
 	err := repository.db.Get(&user, query, id)
@@ -37,7 +37,7 @@ func (repository *UserRepository) FindByID(id int) (models.User, error) {
 	return user, nil
 }
 
-func (repository *UserRepository) FindByUsername(username string) (models.User, error) {
+func (repository *UserQuery) FindByUsername(username string) (models.User, error) {
 	var user models.User
 	query := "SELECT * FROM users WHERE username = $1"
 	err := repository.db.Get(&user, query, username)
@@ -48,7 +48,7 @@ func (repository *UserRepository) FindByUsername(username string) (models.User, 
 	return user, nil
 }
 
-func (repository *UserRepository) Add(user models.User) error {
+func (repository *UserQuery) Add(user models.User) error {
 	nextID, err := repository.GetNextID()
 	if err != nil {
 		return fmt.Errorf("error getting next ID: %v", err)
@@ -65,7 +65,7 @@ func (repository *UserRepository) Add(user models.User) error {
 	return nil
 }
 
-func (repository *UserRepository) Update(user models.User) error {
+func (repository *UserQuery) Update(user models.User) error {
 	query := "UPDATE users SET username = $1, email = $2, password = $3, role = $4 WHERE user_id = $5"
 	_, err := repository.db.Exec(query, user.Username, user.Email, user.Password, user.Role, user.UserID)
 	if err != nil {
@@ -75,7 +75,7 @@ func (repository *UserRepository) Update(user models.User) error {
 	return nil
 }
 
-func (repository *UserRepository) Delete(id int) error {
+func (repository *UserQuery) Delete(id int) error {
 	query := "UPDATE users SET active = false WHERE user_id = $1"
 	_, err := repository.db.Exec(query, id)
 	if err != nil {
@@ -85,7 +85,7 @@ func (repository *UserRepository) Delete(id int) error {
 	return nil
 }
 
-func (repository *UserRepository) GetNextID() (int, error) {
+func (repository *UserQuery) GetNextID() (int, error) {
 	var id int
 
 	createSeq := `DO $$ 
@@ -111,7 +111,7 @@ func (repository *UserRepository) GetNextID() (int, error) {
 	return id, nil
 }
 
-func (repository *UserRepository) EnumRole() (role string, err error) {
+func (repository *UserQuery) EnumRole() (role string, err error) {
 	query := "SELECT enum_range(NULL::role)"
 	err = repository.db.Get(&role, query)
 	if err != nil {
