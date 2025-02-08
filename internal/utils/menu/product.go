@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"clothing-pair-project/internal/database/sqlrepo"
 	"clothing-pair-project/internal/services"
+	"clothing-pair-project/internal/utils/handler"
+	"clothing-pair-project/internal/utils/key_input"
 	"clothing-pair-project/internal/utils/messages"
+	"clothing-pair-project/internal/utils/tables"
 	"database/sql"
 	"fmt"
 	"os"
@@ -29,7 +32,7 @@ func ManageProductMenu(db *sqlx.DB, msg string) {
 
 	messages.PrintMessage(msg)
 
-	productRepository := sqlrepo.NewProductRepository(db)
+	productRepository := sqlrepo.NewProductQuery(db)
 	productService := services.NewProductService(productRepository)
 
 	var input string
@@ -72,42 +75,28 @@ func ManageProductMenu(db *sqlx.DB, msg string) {
 
 func showProducts(productService *services.ProductService, limit, offset int) (bool, bool) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
-	table.SetRowLine(true)
+	displayed := tables.ProductsTablePresenter(table)
+	productHandler := handler.NewProductHandler(displayed, productService)
 
-	products, err := productService.GetAllProducts(limit+1, offset)
+	hasNext, hasPrev, err := productHandler.ShowAllProducts(limit, offset)
 	if err != nil {
-		fmt.Printf("Error finding all products: %v\n", err)
+		fmt.Printf("Error showing products: %v\n", err)
 		return false, false
 	}
-
-	if len(products) == 0 {
-		fmt.Println("No products found")
-		return false, false
-	}
-
-	displayProducts := products
-	if len(products) > limit {
-		displayProducts = products[:limit]
-	}
-
-	for _, product := range displayProducts {
-		table.Append([]string{
-			fmt.Sprintf("%d", product.ProductID),
-			product.Name,
-			fmt.Sprintf("%.2f", product.Price),
-			product.Description.String,
-			product.Images.String,
-			product.Type,
-		})
-	}
-	table.Render()
-	fmt.Println()
-
-	hasNext := len(products) > limit
-	hasPrev := offset > 0
 
 	return hasNext, hasPrev
+}
+
+func showProductByID(productService *services.ProductService, productID int) {
+	table := tablewriter.NewWriter(os.Stdout)
+	displayed := tables.ProductsTablePresenter(table)
+	productHandler := handler.NewProductHandler(displayed, productService)
+
+	err := productHandler.ShowProductByID(productID)
+	if err != nil {
+		fmt.Printf("Error showing product by ID: %v\n", err)
+		return
+	}
 }
 
 func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, msg string, limit, offset int) {
@@ -132,7 +121,7 @@ func findAllProductsMenu(db *sqlx.DB, productService *services.ProductService, m
 	var input string
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		msg = "No key_input entered"
+		msg = "No input entered"
 		ManageProductMenu(db, msg)
 		return
 	}
@@ -169,31 +158,14 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
 		return
 	}
-	product, err := productService.GetProductByID(productID)
-	if err != nil {
-		msg := "Error finding product by ID"
-		findAllProductsMenu(db, productService, msg, lengthItem, starItem)
-		return
-	}
 
 	fmt.Println()
 	fmt.Println("The Product")
 	fmt.Println()
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Name", "Price", "Description", "Image", "Type"})
-	table.SetRowLine(true)
+	showProductByID(productService, productID)
 
-	table.Append([]string{
-		fmt.Sprintf("%d", product.ProductID),
-		product.Name,
-		fmt.Sprintf("%.2f", product.Price),
-		product.Description.String,
-		product.Images.String,
-		product.Type,
-	})
-	table.Render()
-
+	// TODO: Implement product detail first
 	productDetailRequestRepository := sqlrepo.NewProductDetailRequestRepository(db)
 	productDetailRequestService := services.NewProductDetailRequestService(productDetailRequestRepository)
 
@@ -224,15 +196,7 @@ func findProductDetailByProductID(db *sqlx.DB, productService *services.ProductS
 	}
 	tableDetail.Render()
 
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		msg := "Error reading key_input"
-		ManageProductMenu(db, msg)
-		return
-	}
-
+	key_input.BackMenu()
 	findAllProductsMenu(db, productService, "", lengthItem, starItem)
 }
 
@@ -279,15 +243,7 @@ func findProductByNameMenu(db *sqlx.DB, productService *services.ProductService,
 	}
 	table.Render()
 
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		msg = "Error reading key_input"
-		ManageProductMenu(db, msg)
-		return
-	}
-
+	key_input.BackMenu()
 	ManageProductMenu(db, "")
 }
 
@@ -759,14 +715,6 @@ func editProductMenu(db *sqlx.DB, productService *services.ProductService, msg s
 		return
 	}
 
-	fmt.Println()
-	fmt.Print("Press any key to back... ")
-	_, err = bufio.NewReader(os.Stdin).ReadBytes('\n')
-	if err != nil {
-		msg = "Error reading key_input"
-		ManageProductMenu(db, msg)
-		return
-	}
-
+	key_input.BackMenu()
 	ManageProductMenu(db, "")
 }
