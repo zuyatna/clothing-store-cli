@@ -72,9 +72,9 @@ func ManageUserMenu(db *sqlx.DB, msg string) {
 }
 
 func showUsers(userService *services.UserService, limit, offset int) (bool, bool) {
-	writer := tablewriter.NewWriter(os.Stdout)
-	displayed := tables.UsersTablePresenter(writer)
-	userHandler := handler.NewUserHandler(userService, displayed)
+	table := tablewriter.NewWriter(os.Stdout)
+	displayed := tables.UsersTablePresenter(table)
+	userHandler := handler.NewUserHandler(displayed, userService)
 
 	hasNext, hasPrev, err := userHandler.ShowAllUsers(limit, offset)
 	if err != nil {
@@ -85,16 +85,31 @@ func showUsers(userService *services.UserService, limit, offset int) (bool, bool
 	return hasNext, hasPrev
 }
 
+func showUser(user models.User) {
+	table := tablewriter.NewWriter(os.Stdout)
+	displayed := tables.AddUserTablePresenter(table)
+	displayed.DisplayAddUser(user)
+}
+
+func showUserByUsername(db *sqlx.DB, userService *services.UserService, msg string, username string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	displayed := tables.UsersTablePresenter(table)
+	userHandler := handler.NewUserHandler(displayed, userService)
+	err := userHandler.ShowUserByUsername(username)
+	if err != nil {
+		msg = "Error fetching user by username"
+		findUserByUsername(db, userService, msg)
+	}
+}
+
 func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string, limit, offset int) {
 	fmt.Println("=====================================")
 	fmt.Println("Find All Users")
 	fmt.Println("=====================================")
 
+	hasNext, hasPrev := showUsers(userService, limit, offset)
 	messages.PrintMessage(msg)
 
-	hasNext, hasPrev := showUsers(userService, limit, offset)
-
-	fmt.Println()
 	if hasPrev {
 		fmt.Println("Type A to Previous")
 	}
@@ -107,7 +122,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 	var input string
 	_, err := fmt.Scanln(&input)
 	if err != nil {
-		msg = "No key_input entered"
+		msg = "No input entered"
 		ManageUserMenu(db, msg)
 		return
 	}
@@ -132,7 +147,7 @@ func findAllUsersMenu(db *sqlx.DB, userService *services.UserService, msg string
 		ManageUserMenu(db, "")
 		return
 	default:
-		msg = "Invalid key_input"
+		msg = "Invalid input"
 		findAllUsersMenu(db, userService, msg, limit, offset)
 		return
 	}
@@ -151,16 +166,9 @@ func findUserByUsername(db *sqlx.DB, userService *services.UserService, msg stri
 		findUserByUsername(db, userService, msg)
 		return
 	}
-
 	fmt.Println()
 
-	writer := tablewriter.NewWriter(os.Stdout)
-	displayed := tables.UsersTablePresenter(writer)
-	userHandler := handler.NewUserHandler(userService, displayed)
-	if err := userHandler.ShowUserByUsername(username); err != nil {
-		msg = "Error fetching user by username"
-		findUserByUsername(db, userService, msg)
-	}
+	showUserByUsername(db, userService, msg, username)
 
 	key_input.BackMenu()
 	ManageUserMenu(db, "")
@@ -208,9 +216,7 @@ func addUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 		Role:     role,
 	}
 
-	writer := tablewriter.NewWriter(os.Stdout)
-	displayed := tables.AddUserTablePresenter(writer)
-	displayed.DisplayAddUser(user)
+	showUser(user)
 
 	confirm, err := key_input.ConfirmAddUser()
 	if err != nil {
@@ -288,13 +294,13 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 	}
 	user.Email = editEmail
 
-	password, err := key_input.EditPassword(user.Password)
+	editPassword, err := key_input.EditPassword(user.Password)
 	if err != nil {
 		msg = err.Error()
 		editUserMenu(db, userService, msg)
 		return
 	}
-	user.Password = password
+	user.Password = editPassword
 
 	editRole, err := key_input.EditRole(db, user.Role)
 	if err != nil {
@@ -303,6 +309,28 @@ func editUserMenu(db *sqlx.DB, userService *services.UserService, msg string) {
 		return
 	}
 	user.Role = editRole
+
+	user = models.User{
+		Username: editUsername,
+		Email:    editEmail,
+		Password: editPassword,
+		Role:     editRole,
+	}
+
+	showUser(user)
+
+	confirm, err := key_input.ConfirmEditUser()
+	if err != nil {
+		msg = err.Error()
+		editUserMenu(db, userService, msg)
+		return
+	}
+
+	if !confirm {
+		msg = "User not updated"
+		ManageUserMenu(db, msg)
+		return
+	}
 
 	err = userService.UpdateUser(user)
 	if err != nil {
@@ -339,6 +367,19 @@ func deleteUserMenu(db *sqlx.DB, userService *services.UserService, msg string) 
 	if err != nil {
 		msg = "Invalid User ID"
 		deleteUserMenu(db, userService, msg)
+		return
+	}
+
+	confirm, err := key_input.ConfirmDeleteUser()
+	if err != nil {
+		msg = err.Error()
+		deleteUserMenu(db, userService, msg)
+		return
+	}
+
+	if !confirm {
+		msg = "User not deleted"
+		ManageUserMenu(db, msg)
 		return
 	}
 

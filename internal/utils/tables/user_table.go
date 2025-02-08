@@ -9,25 +9,25 @@ import (
 )
 
 type UserTable struct {
-	writer *tablewriter.Table
+	table *tablewriter.Table
 }
 
-func UsersTablePresenter(writer *tablewriter.Table) *UserTable {
-	writer.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
-	writer.SetRowLine(true)
-	return &UserTable{writer: writer}
+func UsersTablePresenter(table *tablewriter.Table) *UserTable {
+	table.SetHeader([]string{"ID", "Username", "Email", "Role", "Created At", "Active"})
+	table.SetRowLine(true)
+	return &UserTable{table: table}
 }
 
-func AddUserTablePresenter(writer *tablewriter.Table) *UserTable {
-	writer.SetHeader([]string{"Username", "Email", "Password", "Role"})
-	writer.SetRowLine(true)
-	return &UserTable{writer: writer}
+func AddUserTablePresenter(table *tablewriter.Table) *UserTable {
+	table.SetHeader([]string{"Username", "Email", "Password", "Role"})
+	table.SetRowLine(true)
+	return &UserTable{table: table}
 }
 
 func (t *UserTable) DisplayUsers(users []models.User) {
-	t.writer.ClearRows()
+	t.table.ClearRows()
 	for _, user := range users {
-		t.writer.Append([]string{
+		t.table.Append([]string{
 			strconv.Itoa(user.UserID),
 			user.Username,
 			user.Email,
@@ -36,16 +36,16 @@ func (t *UserTable) DisplayUsers(users []models.User) {
 			strconv.FormatBool(user.Active),
 		})
 	}
-	t.writer.Render()
+	t.table.Render()
 }
 
 func (t *UserTable) DisplayAddUser(user models.User) {
-	t.writer.ClearRows()
-	t.writer.Append([]string{
+	t.table.ClearRows()
+	t.table.Append([]string{
 		user.Username,
 		user.Email,
 		user.Password,
 		user.Role,
 	})
-	t.writer.Render()
+	t.table.Render()
 }

@@ -128,7 +128,7 @@ func Role(db *sqlx.DB) (string, error) {
 }
 
 func ConfirmAddUser() (bool, error) {
-	fmt.Print("Add user? (y/n): ")
+	fmt.Print("Confirm to add user? (y/n): ")
 	reader := bufio.NewReader(os.Stdin)
 	confirm, err := reader.ReadString('\n')
 	confirm = strings.TrimSpace(confirm)
@@ -233,4 +233,36 @@ func EditRole(db *sqlx.DB, currentRole string) (string, error) {
 	}
 
 	return currentRole, nil
+}
+
+func ConfirmEditUser() (bool, error) {
+	fmt.Print("Confirm to edit user? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	confirm, err := reader.ReadString('\n')
+	confirm = strings.TrimSpace(confirm)
+	if err != nil {
+		return false, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if confirm == "y" {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func ConfirmDeleteUser() (bool, error) {
+	fmt.Print("Are you sure want to delete this account? (y/n): ")
+	reader := bufio.NewReader(os.Stdin)
+	confirm, err := reader.ReadString('\n')
+	confirm = strings.TrimSpace(confirm)
+	if err != nil {
+		return false, fmt.Errorf("error reading input: %w", err)
+	}
+
+	if confirm == "y" {
+		return true, nil
+	}
+
+	return false, nil
 }

@@ -7,19 +7,19 @@ import (
 )
 
 type UserHandler struct {
-	userService interfaces.UserFetcher
 	userDisplay interfaces.UserDisplay
+	userFetcher interfaces.UserFetcher
 }
 
-func NewUserHandler(service interfaces.UserFetcher, display interfaces.UserDisplay) *UserHandler {
+func NewUserHandler(userDisplay interfaces.UserDisplay, userFetcher interfaces.UserFetcher) *UserHandler {
 	return &UserHandler{
-		userService: service,
-		userDisplay: display,
+		userDisplay: userDisplay,
+		userFetcher: userFetcher,
 	}
 }
 
 func (h *UserHandler) ShowAllUsers(limit, offset int) (bool, bool, error) {
-	users, err := h.userService.GetAllUsers(limit+1, offset)
+	users, err := h.userFetcher.GetAllUsers(limit+1, offset)
 	if err != nil {
 		return false, false, fmt.Errorf("error fetching all users: %w", err)
 	}
@@ -42,7 +42,7 @@ func (h *UserHandler) ShowAllUsers(limit, offset int) (bool, bool, error) {
 }
 
 func (h *UserHandler) ShowUserByUsername(username string) error {
-	user, err := h.userService.GetUserByUsername(username)
+	user, err := h.userFetcher.GetUserByUsername(username)
 	if err != nil {
 		return fmt.Errorf("error fetching user by username: %w", err)
 	}
