@@ -19,5 +19,5 @@ func CheckPasswordHash(password, hash string) bool {
 	if err != nil {
 		return false
 	}
-	return err == nil
+	return true
 }
